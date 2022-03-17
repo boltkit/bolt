@@ -1,0 +1,40 @@
+{
+  "name": "bolt",
+  "version": "0.0.1",
+  "description": "Fast lightweight minimalist pipeline runner",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dmitri Chapkine",
+  "license": "MIT",
+  "dependencies": {
+    "ajv": "^8.10.0",
+    "backkit-bull": "git+https://github.com/backkit/bull.git",
+    "backkit-config": "git+https://github.com/backkit/config.git",
+    "backkit-kernel": "git+https://github.com/backkit/kernel.git",
+    "backkit-koa": "git+https://github.com/backkit/koa.git",
+    "backkit-mongoose": "git+https://github.com/backkit/mongoose.git",
+    "backkit-winston": "git+https://github.com/backkit/winston.git",
+    "ejs": "^3.1.6",
+    "js-yaml": "^4.1.0",
+    "koa-views": "^8.0.0",
+    "moment": "^2.29.1",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boltkit/bolt.git"
+  },
+  "keywords": [
+    "pipeline",
+    "workflow",
+    "worker",
+    "runner"
+  ],
+  "bugs": {
+    "url": "https://github.com/boltkit/bolt/issues"
+  },
+  "homepage": "https://github.com/boltkit/bolt#readme"
+}

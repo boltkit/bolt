@@ -1,0 +1,13 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <% items.forEach(item => { %>
+    <li class="breadcrumb-item">
+      <a href="<%= item.uri %>"><%= item.title %>
+        <% if (item.status) { %>
+          <span class="badge status <%= item.status %>"><%= item.status %></span>
+        <% } %>    
+      </a>
+    </li>
+    <% }) %>
+  </ol>
+</nav>

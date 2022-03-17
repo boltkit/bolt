@@ -1,0 +1,30 @@
+<%- include('_header.html') %>
+
+<%- include('_breadcrumbs.html', {items: [
+  {title: "Home", uri: "/"},
+  {title: "Pipelines", uri: "/pipelines"},
+  {title: pipeline.id, uri: `/pipelines/${pipeline.id}`},
+  {title: job.name, uri: "", status: job.getStatus()}
+]}) %>
+
+<div>
+<% job.procs.forEach(proc => { %>
+<div>
+<pre>
+<b>$><%= proc.bin %> <%= proc.opts.join(' ') %></b>
+</pre>
+<% if (proc.exitCode !== null) { %>
+<pre style="width: 99%; color: white; background: black; padding: 5px; overflow: hidden;">
+<%= proc.stdout %>
+<%= proc.stderr || (proc.err ? proc.err.message : '') %>
+<b style="color: <%= (proc.exitCode !== null && proc.exitCode > 0) ? 'red' : 'white' %>">~ exit code <%= proc.exitCode %></b>
+</pre>
+<pre style="width: 99%; color: white; background: black; padding: 5px; overflow: hidden;">
+job result: <%= job.resultBuffer %>
+</pre>
+<% } %>
+
+</div>
+<% }) %>
+</div>
+<%- include('_footer.html') %>

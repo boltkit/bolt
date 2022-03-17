@@ -1,0 +1,51 @@
+<%- include('_header.html') %>
+
+
+<%- include('_breadcrumbs.html', {items: [
+  {title: "Home", uri: "/"},
+  {title: "Scripts", uri: "/scripts"}
+]}) %>
+
+
+<h4>Available scripts</h4>
+
+<ul>
+<% scripts.forEach(script => { %>
+  <li>
+    <a href="/scripts/<%= script.id %>"><%= script.name %></a>
+  </li>
+<% }) %>
+</ul>
+
+
+
+<form action="/scripts" method="post">
+
+  <fieldset>
+    <legend>Create script</legend>
+
+    <div class="mb-3">
+      <label for="name" class="form-label">Script name</label>
+      <input type="text" class="form-control" id="name" name="name" placeholder="source name">
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea id="description" class="form-control" name="description" rows="10" style="width:100%"></textarea>
+    </div>
+    
+    <div class="mb-3">
+      <label for="src" class="form-label">Source</label>
+      <textarea id="src" class="form-control" name="src" rows="10" style="width:100%"></textarea>
+    </div>
+    
+    <div class="mb-3">
+      <input type="submit" value="create"/>
+    </div>
+  </fieldset>
+  
+  
+</form>
+
+<%- include('_footer.html') %>
+

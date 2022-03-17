@@ -1,0 +1,24 @@
+default:
+  queue:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      db: 5
+  worker:
+    concurency: 100
+pipeline-job:
+  queue:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      db: 5
+  worker:
+    concurency: 100
+pipeline-scheduler:
+  queue:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      db: 5
+  worker:
+    concurency: 1

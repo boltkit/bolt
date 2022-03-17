@@ -1,0 +1,39 @@
+<%- include('_header.html') %>
+
+<style>
+pre.src {
+  color: white;
+  background-color: black;
+  padding: 13px;
+  border-radius: 3px;
+}
+</style>
+
+
+
+<%- include('_breadcrumbs.html', {items: [
+  {title: "Home", uri: "/"},
+  {title: "Scripts", uri: "/scripts"},
+  {title: script.id, uri: `/scripts/${script.id}`, status: ""}
+]}) %>
+
+
+<div>
+  <h3>scripts / <%= script.name %></h3><span>(version #<%= script.versions.length %>)</span>
+  <p>
+  <%= script.description %>
+  </p>
+</div>
+
+
+<div>
+<pre class="src"><%= script.lastVersion.srcYml %></pre>
+</div>
+
+<form action="/pipelines" method="post">
+  <input type="hidden" name="scriptId" value="<%= script.id %>"/>
+  <input type="submit" value="run"/>
+</form>
+
+<%- include('_footer.html') %>
+

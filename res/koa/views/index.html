@@ -1,0 +1,34 @@
+<%- include('_header.html') %>
+
+<h3>Overview</h3>
+
+<div class="row">
+
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Scripts</h5>
+        <h6 class="card-subtitle mb-2 text-muted"></h6>
+        <p class="card-text"><%= scripts.length %> pipeline scripts created</p>
+        <a href="/scripts" class="card-link">View</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Pipelines</h5>
+        <h6 class="card-subtitle mb-2 text-muted"></h6>
+        <p class="card-text"><%= pipelines.length %> pipelines created (<%= pipelines.filter(el => !el.isFinished).length %> active)</p>
+        <a href="/pipelines" class="card-link">View</a>
+        <a href="/pipelines" class="card-link">Create</a>
+        <a href="/pipeline/process" class="card-link">Schedule</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<%- include('_footer.html') %>

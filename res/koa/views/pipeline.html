@@ -1,0 +1,76 @@
+<%- include('_header.html') %>
+
+<% if (!pipeline.isFinished) { %>
+<meta http-equiv="refresh" content="1"/>
+<%} %>
+
+
+<style>
+
+.job {
+  display: inline-block;
+  color: white;
+}
+
+.job.failure {
+  background-color: red;
+}
+
+.job.success {
+  background-color: green;
+}
+
+.job.unknown {
+  background-color: grey;
+}
+
+.job.running {
+  background-color: green;
+}
+
+.job.pending {
+  background-color: orange;
+}
+
+</style>
+
+<%- include('_breadcrumbs.html', {items: [
+  {title: "Home", uri: "/"},
+  {title: "Pipelines", uri: "/pipelines"},
+  {title: pipeline.id, uri: `/pipelines/${pipeline.id}`, status: pipeline.getStatus()}
+]}) %>
+
+
+
+<div>
+  Created <%= moment(pipeline.createdAt).fromNow() %>
+  <br/>
+</div>
+
+<div>
+  <% let jobCounter = 0; %>
+  <% pipeline.jobs.forEach(job => { %>
+  <a href="/pipelines/<%= pipeline.id %>/job/<%= jobCounter %>"><div class="job <%= job.getStatus() %>"><%= job.name %></div></a>
+  <% jobCounter++; %>
+  <% }) %>
+</div>
+
+<!-- div id="pipeline_<%= pipeline.id %>" style="margin-left: 30px">
+<% pipeline.jobs.forEach(job => { %>
+<div>
+  <h4>Job :<%= job.name %></h4>
+<% job.procs.forEach(proc => { %>
+<div>
+<pre>
+<b><%= proc.bin %><%= proc.opts.join(' ') %></b>
+</pre>
+<pre style="width: 90%; color: white; background: black; padding: 5px;">
+<%= proc.stdout %>
+<%= proc.stderr || (proc.err ? proc.err.message : '') %>
+</pre>
+</div>
+<% }) %>
+</div>
+<% }) %>
+</div -->
+<%- include('_footer.html') %>
