@@ -45,7 +45,23 @@ class IndexController {
           type: "object",
           properties: {
             name: {type: "string"},
+            // run processes
             procs: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  bin: {type: "string"},
+                  opts: {
+                    type: "array",
+                    items: {type: "string"}
+                  },
+                  env: {type: "object"}
+                }
+              }
+            },
+            // rollback processes
+            rollbacks: {
               type: "array",
               items: {
                 type: "object",
@@ -67,7 +83,6 @@ class IndexController {
     });
 
     try {
-      console.log(ctx.request.body.src)
       const src = yaml.load(ctx.request.body.src);
       if (validateSource(src)) {
         const script = new this.mongoose.models.PipelineScript({

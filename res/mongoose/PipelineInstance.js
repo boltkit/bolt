@@ -111,7 +111,22 @@ module.exports = ({mongoose}) => {
     } else {
       return new Promise((resolve, reject) => {
 
-        const ls = spawn(this.bin, this.opts);
+        const ls = spawn(
+          this.bin,
+          this.opts.concat("2>&1"),
+          {
+            cwd: this.cwd,
+            env: Object.assign(
+              {},
+              process.env,
+              this.env,
+              {__JOB_RESULT_FILE__: this.__jobResultFile},
+              (this.__runtimeEnv || {})
+            ),
+            shell: true,
+            stdio: ['inherit', 'pipe', 'pipe']
+          }
+        );
 
         ls.stdout.on('data', (chunk) => {
           this.stdout += chunk.toString();
@@ -160,26 +175,98 @@ module.exports = ({mongoose}) => {
     }
   }
 
+
+
   /**
    * Job
    */
   mongoose.schemas.JobInstance = mongoose.mongoose.Schema({
     name: { type: String, index: false, required: true },
-    procs: { type: [mongoose.schemas.ProcInstance] },
+    procs: { type: [mongoose.schemas.ProcInstance], required: true },
+    rollbacks: { type: [mongoose.schemas.ProcInstance], required: true },
 
     // if one of these is true, 
     isFinished: { type: Boolean, index: true, default: false },
     isRunning: { type: Boolean, index: true, default: false },
     //isCanceled: { type: Boolean, index: true, default: false },
 
+    // rollback
+    isRollbackFinished: { type: Boolean, index: true, default: false },
+    isRollbackRunning: { type: Boolean, index: true, default: false },
+
     // result
     resultBuffer: { type: Buffer, index: false, default: null },
+    rollbackResultBuffer: { type: Buffer, index: false, default: null },
 
     // timestamps
     createdAt: { type: Date, index: true, default: Date.now },
     updatedAt: { type: Date, index: true, default: null },
     deletedAt: { type: Date, index: true, default: null }
   }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
+
+
+  mongoose.schemas.JobInstance.methods.execRollbackSeries = function(_cb) {
+    const that = this;
+
+    // create and set working directory
+    const cwd = fs.mkdtempSync(os.tmpdir()+path.sep);
+    that.rollbacks.forEach(p => p.cwd = cwd);
+
+    // create and set tmp folder for job results
+    const jobResultDir = fs.mkdtempSync(os.tmpdir()+path.sep);
+    const jobResultFile = jobResultDir + path.sep + '__JOB_RESULT_FILE__';
+    that.rollbacks.forEach(p => p.__jobResultFile = jobResultFile);
+
+    // create previous job result files
+    const ppResultDir = fs.mkdtempSync(os.tmpdir()+path.sep);
+    try {
+      if (that.__jobResultsAsBuffer) {
+        let ii = 0;
+        let runtimeEnv = {};
+        for (let jobres of that.__jobResultsAsBuffer) {
+          runtimeEnv[`__JOB_${ii}_RESULT_FILE__`] = ppResultDir + path.sep + `__JOB_${ii}_RESULT_FILE__`;
+          fs.writeFileSync(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`], jobres);
+          ii++;
+        }
+        // add env to rollback
+        that.rollbacks.forEach(el => el.__runtimeEnv = runtimeEnv);
+      }
+    } catch (err2) {
+      console.log(err2)
+    }
+    
+    if (_cb) {
+      asyncjs.series(that.rollbacks.map(el => el.exec.bind(el)),
+      function (err, values) {
+        try {
+          that.rollbackResultBuffer = fs.readFileSync(jobResultFile);
+        } catch (err2) {
+          //console.log(err2)
+        }
+        if (err) {
+          _cb(err, that);
+        } else {
+          _cb(null, that);
+        }
+      });
+    } else {
+      return new Promise((resolve, reject) => {
+        asyncjs.series(that.rollbacks.map(el => el.exec.bind(el)),
+        function (err, values) {
+          try {
+            that.rollbackResultBuffer = fs.readFileSync(jobResultFile);
+          } catch (err2) {
+            //console.log(err2)
+          }
+          if (err) {
+            reject(err);
+          } else {
+            resolve(that);
+          }
+        });
+      });
+    }
+  }
 
 
   mongoose.schemas.JobInstance.methods.execSeries = function(_cb) {
@@ -257,6 +344,34 @@ module.exports = ({mongoose}) => {
     return this.resultBuffer.toString();
   });
 
+  mongoose.schemas.JobInstance.virtual('isRollbackFailure').get(function(_cb) {
+    return this.rollbacks.filter(el => el.isFailure).length > 0;
+  });
+
+  mongoose.schemas.JobInstance.virtual('isRollbackSuccess').get(function(_cb) {
+    return !this.isRollbackFailure;
+  });
+
+  mongoose.schemas.JobInstance.virtual('rollbackResultString').get(function(_cb) {
+    return this.rollbackResultBuffer.toString();
+  });
+
+  mongoose.schemas.JobInstance.methods.getRollbackStatus = function(_cb) {
+    if (this.isRollbackFinished) {
+      if (this.isRollbackFailure) {
+        return 'failure';
+      } else if (this.isRollbackSuccess) {
+        return 'success';
+      }
+      return 'unknown';
+    } else if (this.isRollbackRunning) {
+      return 'running';
+    } else if (this.isRollbackCanceled) {
+      return 'canceled';
+    } else {
+      return 'pending';
+    }
+  }
   
 
   mongoose.schemas.JobInstance.methods.getStatus = function(_cb) {
@@ -283,8 +398,15 @@ module.exports = ({mongoose}) => {
   mongoose.schemas.PipelineInstance = mongoose.mongoose.Schema({
     // if one of these is true, we don't touch the pipeline
     isLocked: { type: Boolean, index: true, default: false },
+    // run state
     isFinished: { type: Boolean, index: true, default: false },
     isRunning: { type: Boolean, index: true, default: false },
+    // rollback state
+    isRollbackNeeded: { type: Boolean, index: true, default: false },
+    //forceRollback: { type: Boolean, index: true, default: false }, // for manual rollback even if pipeline succeeded
+    isRollbackFinished: { type: Boolean, index: true, default: false },
+    isRollbackRunning: { type: Boolean, index: true, default: false },
+
     // local id of current job [0-X]
     currentJobId: { type: Number, index: true, default: 0 },
     // job states, including stdout, exit codes, etc...
@@ -296,6 +418,38 @@ module.exports = ({mongoose}) => {
     deletedAt: { type: Date, index: true, default: null }
   }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
 
+
+
+  /**
+   * Get job id (0-n) from which we can start running rollback
+   */
+  mongoose.schemas.PipelineInstance.methods.getRollbackEntryPoint = function() {
+    let i = 0;
+    for (let job of this.jobs) {
+      if (job.isFailure) {
+        return i;
+      }
+      i++;
+    }
+    return this.jobs.length - 1;
+  }
+
+  mongoose.schemas.PipelineInstance.methods.getRollbackJob = function() {
+    if (this.isRollbackNeeded) {
+      let i = this.getRollbackEntryPoint();
+      console.log("=============getRollbackEntryPoint", i, i >= 0)
+      while (i >= 0) {
+        console.log("=============while", i, this.jobs[i])
+        const job = this.jobs[i];
+        console.log("============= isRollbackFinished isRollbackRunning", job.isRollbackFinished, job.isRollbackRunning)
+        if (!job.isRollbackFinished && !job.isRollbackRunning) {
+          return job;
+        }
+        i--;
+      }
+    }
+    return null;
+  }
   
   mongoose.schemas.PipelineInstance.methods.getNextJob = function() {
     let i = 0;
@@ -316,6 +470,20 @@ module.exports = ({mongoose}) => {
     return null;
   }
 
+  /*
+  mongoose.schemas.PipelineInstance.methods.isRollbackNeeded = function() {
+    if (this.forceRollback === true) {
+      return true;
+    }
+    for (let job of this.jobs) {
+      if (job.isFailure) {
+        return true;
+      }
+    }
+    return false;
+  }
+  */
+
   mongoose.schemas.PipelineInstance.virtual('isFailure').get(function(_cb) {
     return this.jobs.filter(el => el.isFailure).length > 0;
   });
@@ -324,7 +492,7 @@ module.exports = ({mongoose}) => {
     return !this.isFailure;
   });
 
-  mongoose.schemas.PipelineInstance.methods.getStatus = function(_cb) {
+  mongoose.schemas.PipelineInstance.methods.getStatus = function() {
     if (this.isFinished) {
       if (this.isSuccess) {
         return "success";
@@ -333,6 +501,30 @@ module.exports = ({mongoose}) => {
       }
       return "unknown";
     } else if (this.isRunning) {
+      return "running";
+    } else {
+      return "pending";
+    }
+  }
+  
+  mongoose.schemas.PipelineInstance.virtual('isRollbackFailure').get(function(_cb) {
+    return this.jobs.filter(el => el.isRollbackFailure).length > 0;
+  });
+
+  mongoose.schemas.PipelineInstance.virtual('isRollbackSuccess').get(function(_cb) {
+    return !this.isRollbackFailure;
+  });
+
+  mongoose.schemas.PipelineInstance.methods.getRollbackStatus = function() {
+    if (this.isRollbackFinished) {
+      if (this.isRollbackSuccess) {
+        return "success";
+      } else if (this.isRollbackFailure) {
+        return "failure";
+      }
+      //console.log(this)
+      return "unknown";
+    } else if (this.isRollbackRunning) {
       return "running";
     } else {
       return "pending";

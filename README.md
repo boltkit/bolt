@@ -48,16 +48,22 @@ jobs:
           - .
 ```
 
-### Docker pull example
+### Docker pull example (with rollback)
 
 
 ```yaml
 jobs:
-  - name: Docker pull example
+  - name: Docker pull example (with rollback)
     procs:
       - bin: docker
         opts:
           - pull
+          - alpine
+    rollbacks:
+      - bin: docker
+        opts:
+          - rm
+          - image
           - alpine
 ```
 
@@ -166,16 +172,31 @@ jobs:
 
 ```yaml
 jobs:
-  - name: Docker pull example (public)
+  - name: First Working Job
     procs:
-      - bin: docker
+      - bin: ls
+        opts: []
+    rollbacks:
+      - bin: echo
         opts:
-          - pull
-          - alpine
-    rollback:
-      - bin: docker
+          - nothing to rollback
+  - name: Second Working Job
+    procs:
+      - bin: ls
+        opts: []
+    rollbacks:
+      - bin: echo
         opts:
-          - image
-          - rm
-          - alpine
+          - rolling back second job
+  - name: Third Failing Job
+    procs:
+      - bin: echo
+        opts:
+          - i will try to run unexisting binary and fail
+      - bin: binarythatdoesnotexist
+        opts: []
+    rollbacks:
+      - bin: echo
+        opts:
+          - rolling back 3rd job
 ```

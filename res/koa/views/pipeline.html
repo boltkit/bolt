@@ -1,6 +1,6 @@
 <%- include('_header.html') %>
 
-<% if (!pipeline.isFinished) { %>
+<% if (!pipeline.isFinished || (pipeline.isRollbackNeeded && !pipeline.isRollbackFinished)) { %>
 <meta http-equiv="refresh" content="1"/>
 <%} %>
 
@@ -8,16 +8,32 @@
 <style>
 
 .job {
+  /*
   display: inline-block;
+  color: white;*/
+  padding: 10px 25px;
+  margin: 30px 25px;
+  position: relative;
+  width: 150px;
+  display: inline-block;
+  border-radius: 5px;
+}
+
+.job a {
   color: white;
+  text-decoration: none;
+}
+.job a:hover {
+  color: white;
+  text-decoration: none;
 }
 
 .job.failure {
-  background-color: red;
+  background-color: #b32f2f;
 }
 
 .job.success {
-  background-color: green;
+  background-color: #2c902c;
 }
 
 .job.unknown {
@@ -25,11 +41,61 @@
 }
 
 .job.running {
-  background-color: green;
+  background-color: #7ec77e;
 }
 
 .job.pending {
-  background-color: orange;
+  background-color: #e4a023;
+}
+
+/*
+.job.success.right:not(:last-child):after {
+  content: '';
+  height: 1px;
+  background: black;
+  width: 50px;
+  position: absolute;
+  right: -50px;
+  top: 50%;
+}
+*/
+.job.success.right:not(:last-child):before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  top: 50%;
+  border-style: solid;
+  border-width: 7px 0 7px 20px;
+  border-color: transparent transparent transparent black;
+  right: -40px;
+  transform: translateY(-50%);
+}
+
+
+
+/*
+.job.success.left:not(:first-child):after {
+  content: '';
+  height: 1px;
+  background: black;
+  width: 50px;
+  position: absolute;
+  right: -50px;
+  top: 50%;
+}
+*/
+.job.success.left:not(:last-child):not(:first-child):before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    top: 50%;
+    border-style: solid;
+    border-width: 7px 0 7px 20px;
+    border-color: transparent transparent transparent black;
+    left: -40px;
+    transform: rotate(180deg) translateY(48%);
 }
 
 </style>
@@ -48,12 +114,29 @@
 </div>
 
 <div>
+pipeline: <span class="badge status <%= pipeline.getStatus() %>"><%= pipeline.getStatus() %></span>
+</div>
+<div>
+rollback: <span class="badge status <%= pipeline.getRollbackStatus() %>"><%= pipeline.getRollbackStatus() %></span>
+</div>
+
+<div style="display: flex">
   <% let jobCounter = 0; %>
   <% pipeline.jobs.forEach(job => { %>
-  <a href="/pipelines/<%= pipeline.id %>/job/<%= jobCounter %>"><div class="job <%= job.getStatus() %>"><%= job.name %></div></a>
+  <div class="job right <%= job.getStatus() %>"><a href="/pipelines/<%= pipeline.id %>/job/<%= jobCounter %>"><%= job.name %></a></div>
   <% jobCounter++; %>
   <% }) %>
 </div>
+
+<% if (pipeline.isRollbackNeeded) { %>
+<div style="display: flex">
+  <% let rollbackCounter = 0; %>
+  <% pipeline.jobs.forEach(job => { %>
+  <div class="job left <%= job.getRollbackStatus() %>"><a href="/pipelines/<%= pipeline.id %>/rollback/<%= rollbackCounter %>">rollback for <%= job.name %></a></div>
+  <% rollbackCounter++; %>
+  <% }) %>
+</div>
+<% } %>
 
 <!-- div id="pipeline_<%= pipeline.id %>" style="margin-left: 30px">
 <% pipeline.jobs.forEach(job => { %>

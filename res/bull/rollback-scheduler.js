@@ -2,47 +2,50 @@
  * The role of a job scheduler is to look for incomplete pipelines, waiting to be executed
  * To be specific, it will look inside unfinished pipelines, those, where no jobs are running
  */
-module.exports = ({bull, logger, mongoose}) => bull.worker('pipeline-scheduler', async (job) => {
+module.exports = ({bull, logger, mongoose}) => bull.worker('rollback-scheduler', async (job) => {
 
-  logger.info(`looking for pending pipelines`);
+  logger.info(`looking for pipelines needing for a rollback`);
 
   const pipeline = await mongoose.models.PipelineInstance
   .findOne({
     isLocked: false,
     isRunning: false,
-    isFinished: false
+    isFinished: true,
+    isRollbackNeeded: true,
+    isRollbackRunning: false,
+    isRollbackFinished: false
   }).exec();
   if (pipeline) {
-    logger.info(`Found pipeline to process ${pipeline.id}`);
+    logger.info(`Found pipeline to rollback ${pipeline.id}`);
     
     // start pipeline
-    pipeline.isRunning = true;
+    pipeline.isRollbackRunning = true;
     await pipeline.save()
     
     // check which job to start next
-    const job = pipeline.getNextJob()
+    console.log("======================================GET ROLLBACK JOB start")
+    const job = pipeline.getRollbackJob()
+    console.log("======================================GET ROLLBACK JOB", job)
     if (job) {
 
       console.log(`next job found: ${job.name}`);
 
-      job.isRunning = true;
+      job.isRollbackRunning = true;
       //await job.save({suppressWarning: true});
       await pipeline.save()
       console.log(`job ${job.name} marked as running`);
 
       try {
-        await job.execSeries();
-        //job.isSuccess = true;
+        await job.execRollbackSeries();
+        //job.isRollbackSuccess = true;
         console.log(`job ${job.name} succeeded`);
       } catch (err) {
-        //job.isFailure = true;
+        //job.isRollbackFailure = true;
         console.log(`job ${job.name} failed ${err.message}`);
-        // job failed ==== pipeline.isRollbackNeeded
-        pipeline.isRollbackNeeded = true;
       }
-      job.isRunning = false;
-      job.isFinished = true;
-      
+      job.isRollbackRunning = false;
+      job.isRollbackFinished = true;
+      //await job.save();
       await pipeline.save()
       console.log(`job ${job.name} saved`);
 
@@ -51,11 +54,11 @@ module.exports = ({bull, logger, mongoose}) => bull.worker('pipeline-scheduler',
       //
 
       // Pipeline not running anymore
-      pipeline.isRunning = false;
+      pipeline.isRollbackRunning = false;
 
       // Update pipeline is no more job left
-      if (!pipeline.getNextJob()) {
-        pipeline.isFinished = true;
+      if (!pipeline.getRollbackJob()) {
+        pipeline.isRollbackFinished = true;
         // @todo: move this to virtual methods
         /*if (job.isFailure) {
           pipeline.isFailure = true;
@@ -66,8 +69,8 @@ module.exports = ({bull, logger, mongoose}) => bull.worker('pipeline-scheduler',
       await pipeline.save();
     } else {
       // No job found this pipeline is finished
-      pipeline.isFinished = true;
-      pipeline.isRunning = false;
+      pipeline.isRollbackFinished = true;
+      pipeline.isRollbackRunning = false;
       await pipeline.save()
     }
   } else {

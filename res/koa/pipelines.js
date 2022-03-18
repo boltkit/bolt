@@ -9,6 +9,7 @@ class IndexController {
       .get('/pipelines', this.showPipelineInstances.bind(this))
       .get('/pipelines/:id', this.showPipelineInstance.bind(this))
       .get('/pipelines/:id/job/:jobid', this.showJobInstance.bind(this))
+      .get('/pipelines/:id/rollback/:jobid', this.showRollbackInstance.bind(this))
       .get('/pipeline/process', this.processPipeline.bind(this))
       .post('/pipelines', this.createPipeline.bind(this))
     );
@@ -26,6 +27,12 @@ class IndexController {
     await ctx.render('job', {pipeline, job, moment})
   }
 
+  async showRollbackInstance(ctx, next) {
+    const pipeline = await this.mongoose.models.PipelineInstance.findOne({_id: ctx.params.id});
+    const job = pipeline.jobs[ctx.params.jobid];
+    await ctx.render('rollback', {pipeline, job, moment})
+  }
+
   async showPipelineInstance(ctx, next) {
     const pipeline = await this.mongoose.models.PipelineInstance.findOne({_id: ctx.params.id});
     await ctx.render('pipeline', {pipeline, moment})
@@ -39,7 +46,7 @@ class IndexController {
     const script = await this.mongoose.models.PipelineScript.findOne({_id: scriptId});
     if (script) {
       console.log("creating pipeline with script:")
-      console.log(script.srcYml)
+      //console.log(script.srcYml)
       const pipeline = new this.mongoose.models.PipelineInstance(script.srcObject);
       await pipeline.save();
       //ctx.body = `Pipeline id: ${pipeline.id}`
@@ -51,24 +58,20 @@ class IndexController {
 
   async processPipeline(ctx, next) {
     let repeatableJobs = await this.bull.getQueue('pipeline-scheduler').getRepeatableJobs();
-    // delete jobs
-    /*for (let job of repeatableJobs) {
-      await this.bull.getQueue('pipeline-scheduler').removeRepeatableByKey(job.key); 
-    }
-    console.log("removed all jobs")
-    */
+    console.log(`${repeatableJobs.length} running jobs for pipelines`)
+    this.bull
+    .getQueue('pipeline-scheduler')
+    .add({}, {repeat: {every: 1*1000}, attempts: 1, timeout: 5*60*1000});
 
-    //
-    repeatableJobs = await this.bull.getQueue('pipeline-scheduler').getRepeatableJobs();
-    console.log(`${repeatableJobs.length} running jobs`)
-    if (repeatableJobs.length >= 0) {
-      this.bull
-      .getQueue('pipeline-scheduler')
-      .add({}, {repeat: {every: 1*1000}, attempts: 1, timeout: 5*60*1000});
-      ctx.body = `launched pipeline scheduler job: ${repeatableJobs.length+1} running`  
-    } else {
-      ctx.body = `${repeatableJobs.length} active scheduler jobs are already running`
-    }
+
+    repeatableJobs = await this.bull.getQueue('rollback-scheduler').getRepeatableJobs();
+    console.log(`${repeatableJobs.length} running jobs for rollbacks`)
+    this.bull
+    .getQueue('rollback-scheduler')
+    .add({}, {repeat: {every: 1*1000}, attempts: 1, timeout: 5*60*1000});
+
+    ctx.body = `launched jobs`  
+  
   }
 }
 

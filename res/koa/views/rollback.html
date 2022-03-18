@@ -8,9 +8,8 @@
 ]}) %>
 
 
-
 <div>
-<% job.procs.forEach(proc => { %>
+<% job.rollbacks.forEach(proc => { %>
 <div>
 <pre>
 <b>$><%= proc.bin %> <%= proc.opts.join(' ') %></b>
@@ -21,14 +20,15 @@
 <%= proc.stderr || (proc.err ? proc.err.message : '') %>
 <b style="color: <%= (proc.exitCode !== null && proc.exitCode > 0) ? 'red' : 'white' %>">~ exit code <%= proc.exitCode %></b>
 </pre>
+
 <% } %>
 
 </div>
 <% }) %>
 
-<% if (job.resultBuffer !== null) { %>
+<% if (job.rollbackResultBuffer !== null) { %>
 <pre style="width: 99%; color: white; background: linear-gradient(320deg, #353535, #5a5a5a); padding: 15px; border-radius: 15px; overflow: hidden;">
-result: <%= job.resultBuffer %>
+result: <%= job.rollbackResultBuffer %>
 </pre>
 <% } %>
 

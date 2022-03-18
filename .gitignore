@@ -108,3 +108,6 @@ config/
 
 # WSL crap
 **Zone.Identifier
+
+# ignore build folder
+bin/
