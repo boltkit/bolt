@@ -114,3 +114,9 @@ bin/
 
 # ignore npm package lock
 package-lock.json
+
+# ignore temp files
+\#*
+*~
+~*
+
