@@ -4,6 +4,9 @@ on:
   release:
     types: [created]
 
+env:
+  NO_INTERACTIVE: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
