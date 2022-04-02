@@ -15,14 +15,41 @@ You can move it under `config/` or write your own.
 In both cases, **you must review configuration and change secret keys, IPs and ports** according to your environment. **Do not use example configuration in production**.
 
 
-# How to run
+# How to run (Development Environment)
 
-```
+```bash
+
+# clone this repo
+git clone https://github.com/boltkit/bolt.git && cd ./bolt
+
+# make sure you have your `config` folder, check `config.example/`
+
 # start http server (http://localhost:3000)
 ./http.sh
 
 # start worker
 ./worker.sh
+
+# the very first time, start scheduled jobs
+curl http://localhost:3000/pipeline/process
+
+```
+
+
+# How to run (Production Environment)
+
+```bash
+
+# install latest version globally
+NO_PROMPT=y npm i -g @boltkit/bolt
+
+# make sure you have your `config` folder, check `config.example/`
+
+# http server
+bolt-http
+
+# workers
+bolt-worker
 
 # the very first time, start scheduled jobs
 curl http://localhost:3000/pipeline/process
