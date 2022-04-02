@@ -1,6 +1,6 @@
 {
   "name": "bolt",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Fast lightweight minimalist pipeline runner",
   "main": "index.js",
   "scripts": {
