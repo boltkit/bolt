@@ -41,5 +41,10 @@
   "homepage": "https://github.com/boltkit/bolt#readme",
   "publishConfig": {
     "access": "public"
+  },
+  "bin": {
+    "bolt": "http.js",
+    "bolt-http": "http.js",
+    "bolt-worker": "worker.js"
   }
 }
