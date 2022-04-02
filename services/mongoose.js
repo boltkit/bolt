@@ -1,1 +1,1 @@
-module.exports = require('backkit-mongoose')
+module.exports = require('@backkit/mongoose')

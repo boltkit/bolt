@@ -1,1 +1,1 @@
-module.exports = require('backkit-bull')
+module.exports = require('@backkit/bull')

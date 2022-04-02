@@ -1,1 +1,1 @@
-require("backkit-kernel")({appdir: __dirname})
+require("@backkit/kernel")({appdir: __dirname})

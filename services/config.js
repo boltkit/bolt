@@ -1,1 +1,1 @@
-module.exports = require('backkit-config')
+module.exports = require('@backkit/config')

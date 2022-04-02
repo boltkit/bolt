@@ -1,1 +1,1 @@
-module.exports = require('backkit-koa')
+module.exports = require('@backkit/koa')

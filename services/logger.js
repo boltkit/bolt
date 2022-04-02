@@ -1,1 +1,1 @@
-module.exports = require('backkit-winston')
+module.exports = require('@backkit/winston')
