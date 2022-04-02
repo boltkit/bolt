@@ -13,7 +13,7 @@
   "dependencies": {
     "@backkit/bull": "0.0.3",
     "@backkit/config": "0.0.3",
-    "@backkit/kernel": "0.0.5",
+    "@backkit/kernel": "0.0.6",
     "@backkit/koa": "0.0.3",
     "@backkit/mongoose": "0.0.4",
     "@backkit/winston": "0.0.4",
