@@ -43,8 +43,8 @@
     "access": "public"
   },
   "bin": {
-    "bolt": "http.js",
-    "bolt-http": "http.js",
-    "bolt-worker": "worker.js"
+    "bolt": "http.sh",
+    "bolt-http": "http.sh",
+    "bolt-worker": "worker.sh"
   }
 }
