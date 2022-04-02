@@ -1,2 +1,4 @@
+#!/usr/bin/env node
+
 process.env["ENTRYPOINT"] = "koa";
-require("./index.js");
+require("@backkit/kernel")({appdir: __dirname})
