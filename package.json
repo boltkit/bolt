@@ -1,6 +1,6 @@
 {
   "name": "@boltkit/bolt",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Fast lightweight minimalist pipeline runner",
   "main": "index.js",
   "scripts": {
