@@ -1,3 +1,5 @@
+http:
+  port: 8080
 keys:
   - PleaseD0ch4ng3Me
 session:

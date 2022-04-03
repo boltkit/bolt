@@ -23,31 +23,31 @@ module.exports = ({bull, logger, mongoose}) => bull.worker('rollback-scheduler',
     await pipeline.save()
     
     // check which job to start next
-    console.log("======================================GET ROLLBACK JOB start")
+    //console.log("======================================GET ROLLBACK JOB start")
     const job = pipeline.getRollbackJob()
-    console.log("======================================GET ROLLBACK JOB", job)
+    //console.log("======================================GET ROLLBACK JOB", job)
     if (job) {
 
-      console.log(`next job found: ${job.name}`);
+      //console.log(`next job found: ${job.name}`);
 
       job.isRollbackRunning = true;
       //await job.save({suppressWarning: true});
       await pipeline.save()
-      console.log(`job ${job.name} marked as running`);
+      //console.log(`job ${job.name} marked as running`);
 
       try {
         await job.execRollbackSeries();
         //job.isRollbackSuccess = true;
-        console.log(`job ${job.name} succeeded`);
+        //console.log(`job ${job.name} succeeded`);
       } catch (err) {
         //job.isRollbackFailure = true;
-        console.log(`job ${job.name} failed ${err.message}`);
+        //console.log(`job ${job.name} failed ${err.message}`);
       }
       job.isRollbackRunning = false;
       job.isRollbackFinished = true;
       //await job.save();
       await pipeline.save()
-      console.log(`job ${job.name} saved`);
+      //console.log(`job ${job.name} saved`);
 
       //
       // Update pipeline

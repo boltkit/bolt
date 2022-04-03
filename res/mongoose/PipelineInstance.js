@@ -225,7 +225,8 @@ module.exports = ({mongoose}) => {
         let runtimeEnv = {};
         for (let jobres of that.__jobResultsAsBuffer) {
           runtimeEnv[`__JOB_${ii}_RESULT_FILE__`] = ppResultDir + path.sep + `__JOB_${ii}_RESULT_FILE__`;
-          fs.writeFileSync(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`], jobres);
+          //console.log(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`], jobres)
+          fs.writeFileSync(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`], jobres||"");
           ii++;
         }
         // add env to rollback
@@ -289,7 +290,8 @@ module.exports = ({mongoose}) => {
         let runtimeEnv = {};
         for (let jobres of that.__jobResultsAsBuffer) {
           runtimeEnv[`__JOB_${ii}_RESULT_FILE__`] = ppResultDir + path.sep + `__JOB_${ii}_RESULT_FILE__`;
-          fs.writeFileSync(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`], jobres);
+          //console.log(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`], jobres)
+          fs.writeFileSync(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`], jobres || "");
           ii++;
         }
         // add env to procs
@@ -437,11 +439,11 @@ module.exports = ({mongoose}) => {
   mongoose.schemas.PipelineInstance.methods.getRollbackJob = function() {
     if (this.isRollbackNeeded) {
       let i = this.getRollbackEntryPoint();
-      console.log("=============getRollbackEntryPoint", i, i >= 0)
+      //console.log("=============getRollbackEntryPoint", i, i >= 0)
       while (i >= 0) {
-        console.log("=============while", i, this.jobs[i])
+        //console.log("=============while", i, this.jobs[i])
         const job = this.jobs[i];
-        console.log("============= isRollbackFinished isRollbackRunning", job.isRollbackFinished, job.isRollbackRunning)
+        //console.log("============= isRollbackFinished isRollbackRunning", job.isRollbackFinished, job.isRollbackRunning)
         if (!job.isRollbackFinished && !job.isRollbackRunning) {
           return job;
         }
