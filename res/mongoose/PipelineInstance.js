@@ -66,15 +66,18 @@ module.exports = ({mongoose}) => {
       ls.stdout.setEncoding('utf8');
 
       ls.stdout.on('data', (chunk) => {
+        console.log(chunk)
         this.stdout += chunk.toString();
       });
 
       ls.stderr.on('data', (chunk) => {
+        console.log(chunk)
         this.stderr += chunk.toString();
       });
 
       ls.on('spawn', (data) => {
-        console.log("spawn")
+        console.log('====================================')
+        console.log("spawn", this.bin, this.opts.join(" "))
       });
 
       ls.on('message', (data) => {
@@ -133,14 +136,18 @@ module.exports = ({mongoose}) => {
         );
 
         ls.stdout.on('data', (chunk) => {
+          console.log(chunk)
           this.stdout += chunk.toString();
         });
 
         ls.stderr.on('data', (chunk) => {
+          console.log(chunk)
           this.stderr += chunk.toString();
         });
 
         ls.on('spawn', (data) => {
+          console.log('====================================')
+          console.log("spawn", this.bin, this.opts.join(" "))
         });
 
         ls.on('message', (data) => {
