@@ -27,7 +27,7 @@ module.exports = ({bull, logger, mongoose}) => bull.worker('pipeline-scheduler',
 
       job.isRunning = true;
       //await job.save({suppressWarning: true});
-      await pipeline.save()
+      await pipeline.saveParallel()
       console.log(`job ${job.name} marked as running`);
 
       try {
@@ -43,7 +43,7 @@ module.exports = ({bull, logger, mongoose}) => bull.worker('pipeline-scheduler',
       job.isRunning = false;
       job.isFinished = true;
       
-      await pipeline.save()
+      await pipeline.saveParallel()
       console.log(`job ${job.name} saved`);
 
       //
@@ -63,12 +63,12 @@ module.exports = ({bull, logger, mongoose}) => bull.worker('pipeline-scheduler',
           pipeline.isSuccess = true;
         }*/
       }
-      await pipeline.save();
+      await pipeline.saveParallel();
     } else {
       // No job found this pipeline is finished
       pipeline.isFinished = true;
       pipeline.isRunning = false;
-      await pipeline.save()
+      await pipeline.saveParallel()
     }
   } else {
     logger.info("NO pipelines to process");

@@ -15,6 +15,10 @@
 <pre>
 <b>$><%= proc.bin %> <%= proc.opts.join(' ') %></b>
 </pre>
+
+
+
+
 <% if (proc.exitCode !== null) { %>
 <pre style="width: 99%; color: white; background: black; padding: 5px; overflow: hidden;">
 <%= proc.stdout %>
@@ -31,6 +35,7 @@
 result: <%= job.resultBuffer %>
 </pre>
 <% } %>
+
 
 </div>
 <%- include('_footer.html') %>

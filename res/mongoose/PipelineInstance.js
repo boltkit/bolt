@@ -42,7 +42,23 @@ module.exports = ({mongoose}) => {
     return this.isSuccess ? 'success' : (this.isFailure ? 'failure' : 'pending');
   });
 
+  mongoose.schemas.ProcInstance.methods.saveParentPipelineInstance = function () {
+    if (this.__parentPipelineInstance) this.__parentPipelineInstance.saveParallel();
+    /*
+    if (this.__parentPipelineInstance) {
+      this.__lastParentPipelineSave = this.__lastParentPipelineSave || 0;
+      if (Date.now() - this.__lastParentPipelineSave > 1000) {
+        this.__parentPipelineInstance.save()
+        .then(() => {
+          this.__lastParentPipelineSave = Date.now();
+        })
+        .catch(err => {}); 
+      }
+    }*/
+  }
+
   mongoose.schemas.ProcInstance.methods.exec = function (_cb) {
+    const that = this;
     this.isStarted = true;
 
     if (_cb) {
@@ -68,11 +84,13 @@ module.exports = ({mongoose}) => {
       ls.stdout.on('data', (chunk) => {
         console.log(chunk)
         this.stdout += chunk.toString();
+        //this.saveParentPipelineInstance()
       });
 
       ls.stderr.on('data', (chunk) => {
         console.log(chunk)
         this.stderr += chunk.toString();
+        //this.saveParentPipelineInstance()
       });
 
       ls.on('spawn', (data) => {
@@ -87,12 +105,14 @@ module.exports = ({mongoose}) => {
       ls.on('error', (err) => {
         this.err = err;
         this.isFinished = true;
+        this.saveParentPipelineInstance();
         _cb(this.err, this);
       });
 
       ls.on('disconnect', () => {
         this.err = new Error("Process disconnected");
         this.isFinished = true;
+        this.saveParentPipelineInstance();
         _cb(this.err, this);
       });
 
@@ -108,6 +128,7 @@ module.exports = ({mongoose}) => {
         }
         console.log("IS FINISHED")
         this.isFinished = true;
+        this.saveParentPipelineInstance();
         if (this.exitCode === 0) {
           _cb(null, this);
         } else {
@@ -138,11 +159,13 @@ module.exports = ({mongoose}) => {
         ls.stdout.on('data', (chunk) => {
           console.log(chunk)
           this.stdout += chunk.toString();
+          //this.saveParentPipelineInstance();
         });
 
         ls.stderr.on('data', (chunk) => {
           console.log(chunk)
           this.stderr += chunk.toString();
+          //this.saveParentPipelineInstance();
         });
 
         ls.on('spawn', (data) => {
@@ -157,12 +180,14 @@ module.exports = ({mongoose}) => {
         ls.on('error', (err) => {
           this.err = err;
           this.isFinished = true;
+          this.saveParentPipelineInstance();
           reject(this.err);
         });
 
         ls.on('disconnect', () => {
           this.err = new Error("Process disconnected");
           this.isFinished = true;
+          this.saveParentPipelineInstance();
           reject(this.err);
         });
 
@@ -178,6 +203,7 @@ module.exports = ({mongoose}) => {
           }
           console.log("IS FINISHED")
           this.isFinished = true;
+          this.saveParentPipelineInstance()
           if (this.exitCode === 0) {
             resolve(this);
           } else {
@@ -311,6 +337,12 @@ module.exports = ({mongoose}) => {
         }
         // add env to procs
         that.procs.forEach(el => el.__runtimeEnv = runtimeEnv);
+
+        // add parent pipeline instance
+        that.procs.forEach(el => {
+          el.__lastParentPipelineSave = 0;
+          el.__parentPipelineInstance = that.__parentPipelineInstance
+        });
       }
     } catch (err2) {
       console.log("err2", err2)
@@ -436,6 +468,39 @@ module.exports = ({mongoose}) => {
   }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
 
 
+  /**
+   * Delayed save function... it will wait until at least one second elapsed before saving
+   * It will also record
+   */
+  mongoose.schemas.PipelineInstance.methods.saveParallel = function(delayed) {
+    this.__lastParallelSave = typeof(this.__lastParallelSave) === 'undefined' ? 0 : this.__lastParallelSave;
+    this.__saveRequestCount = typeof(this.__saveRequestCount) === 'undefined' ? 0 : this.__saveRequestCount;
+
+
+    if (delayed === true) {
+      if (this.__saveRequestCount === 0 && (Date.now() - this.__lastParallelSave) >= 1000) {
+        this.__lastParallelSave = Date.now();
+        this.save()
+        .then(() => {
+          console.log("PIPELINE INSTANCE SAVED")
+        })
+        .catch((err) => {
+          console.log("PIPELINE INSTANCE SAVE ERROR", err)
+        })
+      } else {
+        this.__saveRequestCount = 0;
+        setTimeout(() => {
+          this.saveParallel(true);
+        }, 1100);
+      }
+    } else {
+      this.__saveRequestCount = 0;
+      setTimeout(() => {
+        this.saveParallel(true);
+      }, 1100);
+    }
+
+  }
 
   /**
    * Get job id (0-n) from which we can start running rollback
@@ -480,6 +545,7 @@ module.exports = ({mongoose}) => {
       }
       if (!job.isFinished && !job.isRunning) {
         job.__jobResultsAsBuffer = jobResultsAsBuffer;
+        job.__parentPipelineInstance = this;
         return job;
       }
       i++;
