@@ -99,7 +99,11 @@ module.exports = ({mongoose}) => {
           this.resultObject = JSON.parse(this.stdout);
         } catch (err) {
           console.log("can't parse stdout")
+          console.log(this.stdout)
+          console.log(this.stderr)
+          console.log(err)
         }
+        console.log("IS FINISHED")
         this.isFinished = true;
         if (this.exitCode === 0) {
           _cb(null, this);
@@ -161,7 +165,11 @@ module.exports = ({mongoose}) => {
             this.resultObject = JSON.parse(this.stdout);
           } catch (err) {
             console.log("can't parse stdout")
+            console.log(this.stdout)
+            console.log(this.stderr)
+            console.log(err)
           }
+          console.log("IS FINISHED")
           this.isFinished = true;
           if (this.exitCode === 0) {
             resolve(this);
@@ -233,7 +241,7 @@ module.exports = ({mongoose}) => {
         that.rollbacks.forEach(el => el.__runtimeEnv = runtimeEnv);
       }
     } catch (err2) {
-      console.log(err2)
+      console.log("err2", err2)
     }
     
     if (_cb) {
@@ -242,7 +250,7 @@ module.exports = ({mongoose}) => {
         try {
           that.rollbackResultBuffer = fs.readFileSync(jobResultFile);
         } catch (err2) {
-          //console.log(err2)
+          console.log("err2", err2)
         }
         if (err) {
           _cb(err, that);
@@ -257,7 +265,7 @@ module.exports = ({mongoose}) => {
           try {
             that.rollbackResultBuffer = fs.readFileSync(jobResultFile);
           } catch (err2) {
-            //console.log(err2)
+            console.log("err2", err2)
           }
           if (err) {
             reject(err);
@@ -298,7 +306,7 @@ module.exports = ({mongoose}) => {
         that.procs.forEach(el => el.__runtimeEnv = runtimeEnv);
       }
     } catch (err2) {
-      console.log(err2)
+      console.log("err2", err2)
     }
     
     if (_cb) {
@@ -307,7 +315,7 @@ module.exports = ({mongoose}) => {
         try {
           that.resultBuffer = fs.readFileSync(jobResultFile);
         } catch (err2) {
-          //console.log(err2)
+          console.log("err2", err2)
         }
         if (err) {
           _cb(err, that);
@@ -322,7 +330,7 @@ module.exports = ({mongoose}) => {
           try {
             that.resultBuffer = fs.readFileSync(jobResultFile);
           } catch (err2) {
-            //console.log(err2)
+            console.log("err2", err2)
           }
           if (err) {
             reject(err);
