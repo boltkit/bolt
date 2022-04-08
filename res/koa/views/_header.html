@@ -28,6 +28,33 @@
   .status.canceled {
     background-color: grey;
   }
+
+  .loading-icon-1 {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    margin-left: 20px;
+  }
+  .loading-icon-1:after {
+    content: " ";
+    display: block;
+    width: 24px;
+    height: 24px;
+    margin: 2px;
+    border-radius: 50%;
+    border: 2px solid #222;
+    border-color: #222 transparent #222 transparent;
+    animation: loading-icon-1 1.2s linear infinite;
+  }
+  @keyframes loading-icon-1 {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
   </style>
 </head>
 <body>

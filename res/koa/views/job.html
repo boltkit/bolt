@@ -1,5 +1,9 @@
 <%- include('_header.html') %>
 
+<% if (!pipeline.isFinished || (pipeline.isRollbackNeeded && !pipeline.isRollbackFinished)) { %>
+<meta http-equiv="refresh" content="1"/>
+<%} %>
+
 <%- include('_breadcrumbs.html', {items: [
   {title: "Home", uri: "/"},
   {title: "Pipelines", uri: "/pipelines"},
@@ -13,7 +17,7 @@
 <% job.procs.forEach(proc => { %>
 <div>
 <pre>
-<b>$><%= proc.bin %> <%= proc.opts.join(' ') %></b>
+<b>$><%= proc.bin %> <%= proc.opts.join(' ') %></b><% if (proc.exitCode == null) { %><span class="loading-icon-1"></span><% } %>
 </pre>
 
 
