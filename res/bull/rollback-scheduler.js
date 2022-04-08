@@ -32,7 +32,7 @@ module.exports = ({bull, logger, mongoose}) => bull.worker('rollback-scheduler',
 
       job.isRollbackRunning = true;
       //await job.save({suppressWarning: true});
-      await pipeline.save()
+      await pipeline.saveParallel()
       //console.log(`job ${job.name} marked as running`);
 
       try {
@@ -46,7 +46,7 @@ module.exports = ({bull, logger, mongoose}) => bull.worker('rollback-scheduler',
       job.isRollbackRunning = false;
       job.isRollbackFinished = true;
       //await job.save();
-      await pipeline.save()
+      await pipeline.saveParallel()
       //console.log(`job ${job.name} saved`);
 
       //
@@ -66,12 +66,12 @@ module.exports = ({bull, logger, mongoose}) => bull.worker('rollback-scheduler',
           pipeline.isSuccess = true;
         }*/
       }
-      await pipeline.save();
+      await pipeline.saveParallel();
     } else {
       // No job found this pipeline is finished
       pipeline.isRollbackFinished = true;
       pipeline.isRollbackRunning = false;
-      await pipeline.save()
+      await pipeline.saveParallel()
     }
   } else {
     logger.info("NO pipelines to process");

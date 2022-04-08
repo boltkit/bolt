@@ -44,17 +44,6 @@ module.exports = ({mongoose}) => {
 
   mongoose.schemas.ProcInstance.methods.saveParentPipelineInstance = function () {
     if (this.__parentPipelineInstance) this.__parentPipelineInstance.saveParallel();
-    /*
-    if (this.__parentPipelineInstance) {
-      this.__lastParentPipelineSave = this.__lastParentPipelineSave || 0;
-      if (Date.now() - this.__lastParentPipelineSave > 1000) {
-        this.__parentPipelineInstance.save()
-        .then(() => {
-          this.__lastParentPipelineSave = Date.now();
-        })
-        .catch(err => {}); 
-      }
-    }*/
   }
 
   mongoose.schemas.ProcInstance.methods.exec = function (_cb) {
@@ -84,13 +73,13 @@ module.exports = ({mongoose}) => {
       ls.stdout.on('data', (chunk) => {
         console.log(chunk)
         this.stdout += chunk.toString();
-        //this.saveParentPipelineInstance()
+        this.saveParentPipelineInstance()
       });
 
       ls.stderr.on('data', (chunk) => {
         console.log(chunk)
         this.stderr += chunk.toString();
-        //this.saveParentPipelineInstance()
+        this.saveParentPipelineInstance()
       });
 
       ls.on('spawn', (data) => {
@@ -159,13 +148,13 @@ module.exports = ({mongoose}) => {
         ls.stdout.on('data', (chunk) => {
           console.log(chunk)
           this.stdout += chunk.toString();
-          //this.saveParentPipelineInstance();
+          this.saveParentPipelineInstance();
         });
 
         ls.stderr.on('data', (chunk) => {
           console.log(chunk)
           this.stderr += chunk.toString();
-          //this.saveParentPipelineInstance();
+          this.saveParentPipelineInstance();
         });
 
         ls.on('spawn', (data) => {
@@ -272,6 +261,12 @@ module.exports = ({mongoose}) => {
         }
         // add env to rollback
         that.rollbacks.forEach(el => el.__runtimeEnv = runtimeEnv);
+
+        // add parent pipeline instance
+        that.rollbacks.forEach(el => {
+          el.__lastParentPipelineSave = 0;
+          el.__parentPipelineInstance = that.__parentPipelineInstance
+        });
       }
     } catch (err2) {
       console.log("err2", err2)
