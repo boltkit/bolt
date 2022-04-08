@@ -12,7 +12,7 @@
 <% job.rollbacks.forEach(proc => { %>
 <div>
 <pre>
-<b>$><%= proc.bin %> <%= proc.opts.join(' ') %></b>
+<% if (proc.exitCode == null) { %><span class="loading-icon-1"></span><% } %><% if (proc.exitCode == 0) { %><span class="check-icon-1"></span><% } %><% if (proc.exitCode > 0) { %><span class="fail-icon-1"></span><% } %><b style="vertical-align: text-bottom; margin-left: 10px;">$><%= proc.bin %> <%= proc.opts.join(' ') %></b>
 </pre>
 <% if (proc.exitCode !== null) { %>
 <pre style="width: 99%; color: white; background: black; padding: 5px; overflow: hidden;">

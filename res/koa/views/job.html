@@ -1,6 +1,6 @@
 <%- include('_header.html') %>
 
-<% if (!pipeline.isFinished || (pipeline.isRollbackNeeded && !pipeline.isRollbackFinished)) { %>
+<% if (pipeline.isFinished === false || (pipeline.isRollbackNeeded && !pipeline.isRollbackFinished)) { %>
 <meta http-equiv="refresh" content="1"/>
 <%} %>
 
@@ -11,13 +11,11 @@
   {title: job.name, uri: "", status: job.getStatus()}
 ]}) %>
 
-
-
 <div>
 <% job.procs.forEach(proc => { %>
 <div>
 <pre>
-<b>$><%= proc.bin %> <%= proc.opts.join(' ') %></b><% if (proc.exitCode == null) { %><span class="loading-icon-1"></span><% } %>
+<% if (proc.exitCode == null) { %><span class="loading-icon-1"></span><% } %><% if (proc.exitCode == 0) { %><span class="check-icon-1"></span><% } %><% if (proc.exitCode > 0) { %><span class="fail-icon-1"></span><% } %><b style="vertical-align: text-bottom; margin-left: 10px;">$><%= proc.bin %> <%= proc.opts.join(' ') %></b>
 </pre>
 
 
