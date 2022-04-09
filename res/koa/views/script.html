@@ -19,7 +19,7 @@ pre.src {
 
 
 <div>
-  <h3>scripts / <%= script.name %></h3><span>(version #<%= script.versions.length %>)</span>
+  <h3>scripts / <%= script.name %> <a href="<%= `/scripts/${script.id}/edit` %>">[edit]</a> </h3><span>(version #<%= script.versions.length %>)</span>
   <p>
   <%= script.description %>
   </p>

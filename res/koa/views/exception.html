@@ -1,0 +1,30 @@
+<%- include('_header.html') %>
+
+<style>
+pre.src {
+  color: white;
+  background-color: black;
+  padding: 13px;
+  border-radius: 3px;
+}
+</style>
+
+
+
+<%- include('_breadcrumbs.html', {items: [
+  {title: "Home", uri: "/"}
+]}) %>
+
+
+<div>
+  <h3>Error</h3>
+
+  <p>
+  <%= err.message %>
+  </p>
+</div>
+
+
+
+<%- include('_footer.html') %>
+

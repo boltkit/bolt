@@ -12,6 +12,7 @@ class IndexController {
       .post('/scripts', this.createScript.bind(this))
       .get('/scripts/:id', this.showScript.bind(this))
       .post('/scripts/:id', this.createScriptVersion.bind(this))
+      .get('/scripts/:id/edit', this.editScript.bind(this))
     );
   }
 
@@ -22,7 +23,12 @@ class IndexController {
 
   async showScript(ctx, next) {
     const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
-    await ctx.render('script', {script, moment})
+    await ctx.render('script', {script, moment});
+  }
+
+  async editScript(ctx, next) {
+    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
+    await ctx.render('script-edit', {script, moment});
   }
 
   async createScriptVersion(ctx, next) {
@@ -85,18 +91,28 @@ class IndexController {
     try {
       const src = yaml.load(ctx.request.body.src);
       if (validateSource(src)) {
-        const script = new this.mongoose.models.PipelineScript({
-          name: ctx.request.body.name,
-          description: ctx.request.body.description || "",
-          versions: [
-            {
-              src: src
-            }
-          ]
-        });
-        await script.save();
-        //ctx.body = `pipeline script: ${script.id}`
-        ctx.redirect(`/scripts/${script.id}`)
+        if (ctx.request.body.id) {
+          const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.request.body.id});
+          if (script) {
+            script.versions.push({src});
+            await script.save();
+            ctx.redirect(`/scripts/${script.id}`); 
+          } else {
+            throw Error(`Script not found ${ctx.request.body.id}`);
+          }
+        } else {
+          const script = new this.mongoose.models.PipelineScript({
+            name: ctx.request.body.name,
+            description: ctx.request.body.description || "",
+            versions: [
+              {
+                src: src
+              }
+            ]
+          });
+          await script.save();
+          ctx.redirect(`/scripts/${script.id}`);
+        }
       } else {
         console.error(validateSource.errors)
         throw Error("Invalid format"+validateSource.errors)
