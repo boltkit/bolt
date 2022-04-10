@@ -16,9 +16,6 @@
 ]}) %>
 
 
-
-
-
 <div>
 <% job.procs.forEach(proc => { %>
 <div>
@@ -35,6 +32,7 @@
 <%= proc.stderr || (proc.err ? proc.err.message : '') %>
 <b style="color: <%= (proc.exitCode !== null && proc.exitCode > 0) ? 'red' : 'white' %>">~ exit code <%= proc.exitCode %></b>
 </pre>
+
 <% } %>
 
 </div>
@@ -45,7 +43,6 @@
 result: <%= job.resultBuffer %>
 </pre>
 <% } %>
-
 
 </div>
 <%- include('_footer.html') %>

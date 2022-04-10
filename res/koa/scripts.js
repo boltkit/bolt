@@ -14,8 +14,9 @@ class IndexController {
       .get('/scripts/:id', this.showScript.bind(this))
       .post('/scripts/:id', this.createScriptVersion.bind(this))
       .get('/scripts/:id/edit', this.editScript.bind(this))
-      .get('/scripts/:id/vars', this.varsScript.bind(this))
-      .get('/scripts/:id/pipelines', this.pipelinesScript.bind(this))
+      .get('/scripts/:id/vars', this.getScriptVars.bind(this))
+      .post('/scripts/:id/vars', this.setScriptVars.bind(this))
+      .get('/scripts/:id/pipelines', this.showScriptPipelines.bind(this))
     );
   }
 
@@ -38,12 +39,37 @@ class IndexController {
     await ctx.render('script-edit', {script, moment});
   }
 
-  async varsScript(ctx, next) {
+  async getScriptVars(ctx, next) {
     const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
     await ctx.render('script-vars', {script, moment});
   }
 
-  async pipelinesScript(ctx, next) {
+  async setScriptVars(ctx, next) {
+    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
+    if (ctx.request.body.vars_name && ctx.request.body.vars_value &&
+        Array.isArray(ctx.request.body.vars_name) && Array.isArray(ctx.request.body.vars_value) &&
+        ctx.request.body.vars_name.length === ctx.request.body.vars_value.length)
+    {
+      const vars_name = ctx.request.body.vars_name;
+      const vars_value = ctx.request.body.vars_value;
+      let vars = [];
+      for (let i in vars_name) {
+        if (vars_name[i] && vars_value[i]) {
+          vars.push({
+            name: vars_name[i],
+            value: vars_value[i],
+            hidden: false
+          });
+        }
+      }
+      console.log(vars);
+      script.vars = vars;
+      await script.save();
+    }
+    await ctx.render('script-vars', {script, moment});
+  }
+
+  async showScriptPipelines(ctx, next) {
     const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
     const pipelines = await this.mongoose.models.PipelineInstance.find({scriptId: ctx.params.id});
     await ctx.render('script-pipelines', {script, pipelines, moment});

@@ -228,3 +228,13 @@ jobs:
         opts:
           - rolling back 3rd job
 ```
+
+### Todo:
+
+- implement rollback
+- store job results
+- read job results from other jobs and rollback jobs
+- improve UI
+- update scripts
+- handle script vars
+- manage job timeout

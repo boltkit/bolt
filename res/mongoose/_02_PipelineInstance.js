@@ -61,7 +61,8 @@ module.exports = ({mongoose}) => {
             process.env,
             this.env,
             {__JOB_RESULT_FILE__: this.__jobResultFile},
-            (this.__runtimeEnv || {})
+            (this.__runtimeEnv || {}),
+            that.script.vars.reduce((obj, item) => Object.assign(obj, { [item.name]: item.value }), {})
           ),
           shell: true,
           stdio: ['inherit', 'pipe', 'pipe']
@@ -71,20 +72,19 @@ module.exports = ({mongoose}) => {
       ls.stdout.setEncoding('utf8');
 
       ls.stdout.on('data', (chunk) => {
-        console.log(chunk)
+        //console.log(chunk)
         this.stdout += chunk.toString();
         this.saveParentPipelineInstance()
       });
 
       ls.stderr.on('data', (chunk) => {
-        console.log(chunk)
+        //console.log(chunk)
         this.stderr += chunk.toString();
         this.saveParentPipelineInstance()
       });
 
       ls.on('spawn', (data) => {
-        console.log('====================================')
-        console.log("spawn", this.bin, this.opts.join(" "))
+        console.log("spawn /// ", this.bin, this.opts.join(" "))
       });
 
       ls.on('message', (data) => {
@@ -110,12 +110,13 @@ module.exports = ({mongoose}) => {
         try {
           this.resultObject = JSON.parse(this.stdout);
         } catch (err) {
-          console.log("can't parse stdout")
+          /*console.log("can't parse stdout")
           console.log(this.stdout)
           console.log(this.stderr)
           console.log(err)
+          */
         }
-        console.log("IS FINISHED")
+        console.log("finished /// ", this.bin, this.opts.join(" "))
         this.isFinished = true;
         this.saveParentPipelineInstance();
         if (this.exitCode === 0) {
@@ -138,7 +139,8 @@ module.exports = ({mongoose}) => {
               process.env,
               this.env,
               {__JOB_RESULT_FILE__: this.__jobResultFile},
-              (this.__runtimeEnv || {})
+              (this.__runtimeEnv || {}),
+              that.script.vars.reduce((obj, item) => Object.assign(obj, { [item.name]: item.value }), {})
             ),
             shell: true,
             stdio: ['inherit', 'pipe', 'pipe']
@@ -146,20 +148,20 @@ module.exports = ({mongoose}) => {
         );
 
         ls.stdout.on('data', (chunk) => {
-          console.log(chunk)
+          //console.log(chunk)
           this.stdout += chunk.toString();
           this.saveParentPipelineInstance();
         });
 
         ls.stderr.on('data', (chunk) => {
-          console.log(chunk)
+          //console.log(chunk)
           this.stderr += chunk.toString();
           this.saveParentPipelineInstance();
         });
 
         ls.on('spawn', (data) => {
-          console.log('====================================')
-          console.log("spawn", this.bin, this.opts.join(" "))
+          //console.log('====================================    PROMISE')
+          console.log("spawn /// ", this.bin, this.opts.join(" "))
         });
 
         ls.on('message', (data) => {
@@ -185,12 +187,14 @@ module.exports = ({mongoose}) => {
           try {
             this.resultObject = JSON.parse(this.stdout);
           } catch (err) {
+            /*
             console.log("can't parse stdout")
             console.log(this.stdout)
             console.log(this.stderr)
             console.log(err)
+            */
           }
-          console.log("IS FINISHED")
+          console.log("finished /// ", this.bin, this.opts.join(" "))
           this.isFinished = true;
           this.saveParentPipelineInstance()
           if (this.exitCode === 0) {
@@ -235,88 +239,34 @@ module.exports = ({mongoose}) => {
   }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
 
 
-  mongoose.schemas.JobInstance.methods.execRollbackSeries = function(_cb) {
+  /**
+   * Populates job's children subcommands with:
+   * - `cwd` is temporary shared working directory for each command in this job
+   * - `__jobResultFile` is the file where current job should write job result
+   * - `__runtimeEnv` is an object containing env variables with results of each job (read from job result files)
+   * - `__parentPipelineInstance` is parent pipeline instance object
+   *
+   * This is intended to be used just before executing our first command in the job
+   *
+   * @param {String} way - indicates if we populate before running 'forward' or 'rollback' 
+   */
+  mongoose.schemas.JobInstance.methods.populateChildCommands = function(way) {
     const that = this;
+
+    // set command collection name
+    let cmdattr = null;
+    if (way === 'forward') cmdattr = 'procs';
+    else if (way === 'backward') cmdattr = 'rollbacks';
+    else throw Error(`JobInstance.populateChildCommands wrong param way ${way}`);
 
     // create and set working directory
     const cwd = fs.mkdtempSync(os.tmpdir()+path.sep);
-    that.rollbacks.forEach(p => p.cwd = cwd);
+    that[cmdattr].forEach(p => p.cwd = cwd);
 
     // create and set tmp folder for job results
     const jobResultDir = fs.mkdtempSync(os.tmpdir()+path.sep);
     const jobResultFile = jobResultDir + path.sep + '__JOB_RESULT_FILE__';
-    that.rollbacks.forEach(p => p.__jobResultFile = jobResultFile);
-
-    // create previous job result files
-    const ppResultDir = fs.mkdtempSync(os.tmpdir()+path.sep);
-    try {
-      if (that.__jobResultsAsBuffer) {
-        let ii = 0;
-        let runtimeEnv = {};
-        for (let jobres of that.__jobResultsAsBuffer) {
-          runtimeEnv[`__JOB_${ii}_RESULT_FILE__`] = ppResultDir + path.sep + `__JOB_${ii}_RESULT_FILE__`;
-          //console.log(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`], jobres)
-          fs.writeFileSync(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`], jobres||"");
-          ii++;
-        }
-        // add env to rollback
-        that.rollbacks.forEach(el => el.__runtimeEnv = runtimeEnv);
-
-        // add parent pipeline instance
-        that.rollbacks.forEach(el => {
-          el.__lastParentPipelineSave = 0;
-          el.__parentPipelineInstance = that.__parentPipelineInstance
-        });
-      }
-    } catch (err2) {
-      console.log("err2", err2)
-    }
-    
-    if (_cb) {
-      asyncjs.series(that.rollbacks.map(el => el.exec.bind(el)),
-      function (err, values) {
-        try {
-          that.rollbackResultBuffer = fs.readFileSync(jobResultFile);
-        } catch (err2) {
-          console.log("err2", err2)
-        }
-        if (err) {
-          _cb(err, that);
-        } else {
-          _cb(null, that);
-        }
-      });
-    } else {
-      return new Promise((resolve, reject) => {
-        asyncjs.series(that.rollbacks.map(el => el.exec.bind(el)),
-        function (err, values) {
-          try {
-            that.rollbackResultBuffer = fs.readFileSync(jobResultFile);
-          } catch (err2) {
-            console.log("err2", err2)
-          }
-          if (err) {
-            reject(err);
-          } else {
-            resolve(that);
-          }
-        });
-      });
-    }
-  }
-
-
-  mongoose.schemas.JobInstance.methods.execSeries = function(_cb) {
-    const that = this;
-
-    // create and set working directory
-    const cwd = fs.mkdtempSync(os.tmpdir()+path.sep);
-    that.procs.forEach(p => p.cwd = cwd);
-
-    // create and set tmp folder for job results
-    const jobResultDir = fs.mkdtempSync(os.tmpdir()+path.sep);
-    const jobResultFile = jobResultDir + path.sep + '__JOB_RESULT_FILE__';
-    that.procs.forEach(p => p.__jobResultFile = jobResultFile);
+    that[cmdattr].forEach(p => p.__jobResultFile = jobResultFile);
 
     // create previous job result files
     const ppResultDir = fs.mkdtempSync(os.tmpdir()+path.sep);
@@ -328,43 +278,54 @@ module.exports = ({mongoose}) => {
           runtimeEnv[`__JOB_${ii}_RESULT_FILE__`] = ppResultDir + path.sep + `__JOB_${ii}_RESULT_FILE__`;
           //console.log(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`], jobres)
           fs.writeFileSync(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`], jobres || "");
+          console.log(`wrote job result for job ${that.name} #${that._id}`);
+          //console.log(fs.readFileSync(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`]))
           ii++;
         }
         // add env to procs
-        that.procs.forEach(el => el.__runtimeEnv = runtimeEnv);
-
-        // add parent pipeline instance
-        that.procs.forEach(el => {
-          el.__lastParentPipelineSave = 0;
-          el.__parentPipelineInstance = that.__parentPipelineInstance
-        });
+        that[cmdattr].forEach(el => el.__runtimeEnv = runtimeEnv);
       }
+
+      // add parent pipeline instance
+      that[cmdattr].forEach(el => {
+        el.__lastParentPipelineSave = 0;
+        el.__parentPipelineInstance = that.__parentPipelineInstance
+      });
+
+      // add related script ID
+      that[cmdattr].forEach(el => {
+        el.__scriptId = that.__scriptId;
+      });
+
     } catch (err2) {
       console.log("err2", err2)
     }
+
+    return {jobResultDir, jobResultFile};
+  };
+
+  /**
+   * Execute forward commands for this job
+   */
+  mongoose.schemas.JobInstance.methods.execSeries = function(_cb) {
+    const that = this;
+    const {jobResultFile} = this.populateChildCommands('forward');
     
-    if (_cb) {
-      asyncjs.series(that.procs.map(el => el.exec.bind(el)),
-      function (err, values) {
-        try {
-          that.resultBuffer = fs.readFileSync(jobResultFile);
-        } catch (err2) {
-          console.log("err2", err2)
-        }
-        if (err) {
-          _cb(err, that);
-        } else {
-          _cb(null, that);
-        }
+    return mongoose.models.PipelineScript.findOne({_id: that.__scriptId})
+    .then((script) => {
+
+      // add related script
+      that.procs.forEach(el => {
+        el.script = script;
       });
-    } else {
+
       return new Promise((resolve, reject) => {
         asyncjs.series(that.procs.map(el => el.exec.bind(el)),
         function (err, values) {
           try {
             that.resultBuffer = fs.readFileSync(jobResultFile);
           } catch (err2) {
-            console.log("err2", err2)
+            console.log(`no result provided by job ${that.name} #${that._id}`)
           }
           if (err) {
             reject(err);
@@ -373,8 +334,43 @@ module.exports = ({mongoose}) => {
           }
         });
       });
-    }
-  }
+    });
+  };
+
+
+
+  /**
+   * Executes rollback commands for this job
+   */
+  mongoose.schemas.JobInstance.methods.execRollbackSeries = function(_cb) {
+    const that = this;
+    const {jobResultFile} = this.populateChildCommands('backward');
+
+    return mongoose.models.PipelineScript.findOne({_id: that.__scriptId})
+    .then((script) => {
+
+      // add related script
+      that.rollbacks.forEach(el => {
+        el.script = script;
+      });
+
+      return new Promise((resolve, reject) => {
+        asyncjs.series(that.rollbacks.map(el => el.exec.bind(el)),
+        function (err, values) {
+          try {
+            that.rollbackResultBuffer = fs.readFileSync(jobResultFile);
+          } catch (err2) {
+            console.log(`no result provided by rollback job ${that.name} #${that._id}`)
+          }
+          if (err) {
+            reject(err);
+          } else {
+            resolve(that);
+          }
+        });
+      });
+    });
+  };
 
   mongoose.schemas.JobInstance.virtual('isFailure').get(function(_cb) {
     return this.procs.filter(el => el.isFailure).length > 0;
@@ -481,10 +477,10 @@ module.exports = ({mongoose}) => {
         this.__lastParallelSave = Date.now();
         this.save()
         .then(() => {
-          console.log("PIPELINE INSTANCE SAVED")
+          console.log(`pipeline instance saves ${this.name} #${this._id}`)
         })
         .catch((err) => {
-          console.log("PIPELINE INSTANCE SAVE ERROR", err)
+          console.log(`pipeline instance save ERROR ${this.name} #${this._id}`, err)
         })
       } else {
         this.__saveRequestCount = 0;
@@ -518,12 +514,13 @@ module.exports = ({mongoose}) => {
   mongoose.schemas.PipelineInstance.methods.getRollbackJob = function() {
     if (this.isRollbackNeeded) {
       let i = this.getRollbackEntryPoint();
-      //console.log("=============getRollbackEntryPoint", i, i >= 0)
+      const jobResultsAsBuffer = this.jobs.map(el => el.resultBuffer);
       while (i >= 0) {
-        //console.log("=============while", i, this.jobs[i])
         const job = this.jobs[i];
-        //console.log("============= isRollbackFinished isRollbackRunning", job.isRollbackFinished, job.isRollbackRunning)
         if (!job.isRollbackFinished && !job.isRollbackRunning) {
+          job.__jobResultsAsBuffer = jobResultsAsBuffer;
+          job.__parentPipelineInstance = this;
+          job.__scriptId = this.scriptId;
           return job;
         }
         i--;
@@ -545,6 +542,7 @@ module.exports = ({mongoose}) => {
       if (!job.isFinished && !job.isRunning) {
         job.__jobResultsAsBuffer = jobResultsAsBuffer;
         job.__parentPipelineInstance = this;
+        job.__scriptId = this.scriptId;
         return job;
       }
       i++;
@@ -604,7 +602,6 @@ module.exports = ({mongoose}) => {
       } else if (this.isRollbackFailure) {
         return "failure";
       }
-      //console.log(this)
       return "unknown";
     } else if (this.isRollbackRunning) {
       return "running";

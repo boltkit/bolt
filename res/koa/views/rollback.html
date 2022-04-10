@@ -1,12 +1,17 @@
 <%- include('_header.html') %>
 
+<% if (pipeline.isFinished === false || (pipeline.isRollbackNeeded && !pipeline.isRollbackFinished)) { %>
+<meta http-equiv="refresh" content="1"/>
+<%} %>
+
 <div>
   <h3 class="page-title"><%= job.name %> *rollback*</h3>
 </div>
 
+
 <%- include('_breadcrumbs.html', {items: [
-  {title: "Pipelines", uri: "/pipelines"},
-  {title: pipeline.id, uri: `/pipelines/${pipeline.id}`},
+  {title: "pipelines", uri: "/pipelines"},
+  {title: pipeline.scriptName, uri: `/pipelines/${pipeline.id}`},
   {title: job.name, uri: "", status: job.getStatus()}
 ]}) %>
 
@@ -17,6 +22,10 @@
 <pre>
 <% if (proc.exitCode == null) { %><span class="loading-icon-1"></span><% } %><% if (proc.exitCode == 0) { %><span class="check-icon-1"></span><% } %><% if (proc.exitCode > 0) { %><span class="fail-icon-1"></span><% } %><b style="vertical-align: text-bottom; margin-left: 10px;">$><%= proc.bin %> <%= proc.opts.join(' ') %></b>
 </pre>
+
+
+
+
 <% if (proc.exitCode !== null) { %>
 <pre style="width: 99%; color: white; background: black; padding: 5px; overflow: hidden;">
 <%= proc.stdout %>

@@ -12,9 +12,9 @@
           <span class="input-group-text" id="">#${id}</span>
         </div>
         <input type="text" class="form-control" id="vars_${id}_name" name="vars_name[]" placeholder="name"/>
-        <input type="text" class="form-control" id="vars_${id}_value" name="vars_value[]" placeholder="value"/>
+        <input type="password" class="form-control" id="vars_${id}_value" name="vars_value[]" placeholder="value"/>
         <button type="button" class="btn btn-danger" onclick="rmVar(${id}); return false;">remove</button>
-        <button type="button" class="btn btn-primary" onclick="addVar(); return false;">add variable</button>
+        <!--button type="button" class="btn btn-primary" onclick="addVar(); return false;">add variable</button-->
       </div>
       `;
       document.getElementById('script-vars').append(nexLine);
@@ -69,24 +69,29 @@ pre.src {
   </ul>
 </div>
 
-<form action="/scripts" method="post">
+<form action="/scripts/<%= script._id %>/vars" method="post">
 
   <fieldset>
     
     <div class="mb-3">
       <label for="" class="form-label">Environment variables</label>
-
       <div id="script-vars">
-        <div id="script-var-0" class="input-group script-var">
+      <% let i = 0; %>
+      <% script.vars.forEach(v => { %>
+        <div id="script-var-<%= i %>" class="input-group script-var">
           <div class="input-group-prepend">
-            <span class="input-group-text" id="">#0</span>
+            <span class="input-group-text" id="">#<%= i %></span>
           </div>
-          <input type="text" class="form-control" id="vars_0_name" name="vars_name[]" placeholder="name"/>
-          <input type="text" class="form-control" id="vars_0_value" name="vars_value[]" placeholder="value"/>
+          <input type="text" class="form-control" id="vars_<%= i %>_name" name="vars_name[]" value="<%= v.name %>" placeholder="name"/>
+          <input type="password" class="form-control" id="vars_<%= i %>_value" name="vars_value[]" value="<%= v.value %>" placeholder="value"/>
           <button type="button" class="btn btn-danger disabled" onclick="rmVar(0); return false;">remove</button>
-          <button type="button" class="btn btn-primary" onclick="addVar(); return false;">add variable</button>
+          <!--button type="button" class="btn btn-primary" onclick="addVar(); return false;">add variable</button-->
         </div>
+      <% i++; %>
+      <% }) %>
       </div>
+
+      <button type="button" class="btn btn-primary" onclick="addVar(); return false;">add variable</button>
 
     </div>
     

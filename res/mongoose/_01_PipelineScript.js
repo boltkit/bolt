@@ -46,7 +46,7 @@ module.exports = ({mongoose}) => {
     versions: { type: [mongoose.schemas.PipelineScriptVersion], default: [] },
 
     // variables and possible arguments
-    //vars: { type: [mongoose.schemas.PipelineVariable], default: [] },
+    vars: { type: [mongoose.schemas.PipelineVariable], default: [] },
     //@todo
     // args: { type: [mongoose.schemas.PipelineArgument], default: [] },
 
