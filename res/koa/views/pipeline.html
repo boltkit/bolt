@@ -149,7 +149,7 @@
 <% pipeline.jobs.forEach(job => { %>
 <div>
   <h4>Job :<%= job.name %></h4>
-<% job.procs.forEach(proc => { %>
+<% job.script.forEach(proc => { %>
 <div>
 <pre>
 <b><%= proc.bin %><%= proc.opts.join(' ') %></b>

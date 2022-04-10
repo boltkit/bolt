@@ -12,12 +12,12 @@
 <%- include('_breadcrumbs.html', {items: [
   {title: "pipelines", uri: "/pipelines"},
   {title: pipeline.scriptName, uri: `/pipelines/${pipeline.id}`},
-  {title: job.name, uri: "", status: job.getStatus()}
+  {title: job.name, uri: "", status: job.getRollbackStatus()}
 ]}) %>
 
 
 <div>
-<% job.rollbacks.forEach(proc => { %>
+<% job.rollback.forEach(proc => { %>
 <div>
 <pre>
 <% if (proc.exitCode == null) { %><span class="loading-icon-1"></span><% } %><% if (proc.exitCode == 0) { %><span class="check-icon-1"></span><% } %><% if (proc.exitCode > 0) { %><span class="fail-icon-1"></span><% } %><b style="vertical-align: text-bottom; margin-left: 10px;">$><%= proc.bin %> <%= proc.opts.join(' ') %></b>

@@ -73,7 +73,7 @@ class IndexController {
 
 
     repeatableJobs = await this.bull.getQueue('rollback-scheduler').getRepeatableJobs();
-    console.log(`${repeatableJobs.length} running jobs for rollbacks`)
+    console.log(`${repeatableJobs.length} running jobs for rollback`)
     this.bull
     .getQueue('rollback-scheduler')
     .add({}, {repeat: {every: 1*1000}, attempts: 1, timeout: 5*60*1000});

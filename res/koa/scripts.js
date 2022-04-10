@@ -71,7 +71,7 @@ class IndexController {
 
   async showScriptPipelines(ctx, next) {
     const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
-    const pipelines = await this.mongoose.models.PipelineInstance.find({scriptId: ctx.params.id});
+    const pipelines = await this.mongoose.models.PipelineInstance.find({scriptId: ctx.params.id}, null, {sort: { createdAt: -1 }});
     await ctx.render('script-pipelines', {script, pipelines, moment});
   }
 
@@ -97,7 +97,7 @@ class IndexController {
           properties: {
             name: {type: "string"},
             // run processes
-            procs: {
+            script: {
               type: "array",
               items: {
                 type: "object",
@@ -112,7 +112,7 @@ class IndexController {
               }
             },
             // rollback processes
-            rollbacks: {
+            rollback: {
               type: "array",
               items: {
                 type: "object",

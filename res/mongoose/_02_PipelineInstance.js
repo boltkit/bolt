@@ -216,8 +216,8 @@ module.exports = ({mongoose}) => {
    */
   mongoose.schemas.JobInstance = mongoose.mongoose.Schema({
     name: { type: String, index: false, required: true },
-    procs: { type: [mongoose.schemas.ProcInstance], required: true },
-    rollbacks: { type: [mongoose.schemas.ProcInstance], required: true },
+    script: { type: [mongoose.schemas.ProcInstance], required: true },
+    rollback: { type: [mongoose.schemas.ProcInstance], required: true },
 
     // if one of these is true, 
     isFinished: { type: Boolean, index: true, default: false },
@@ -255,8 +255,8 @@ module.exports = ({mongoose}) => {
 
     // set command collection name
     let cmdattr = null;
-    if (way === 'forward') cmdattr = 'procs';
-    else if (way === 'backward') cmdattr = 'rollbacks';
+    if (way === 'forward') cmdattr = 'script';
+    else if (way === 'backward') cmdattr = 'rollback';
     else throw Error(`JobInstance.populateChildCommands wrong param way ${way}`);
 
     // create and set working directory
@@ -282,7 +282,7 @@ module.exports = ({mongoose}) => {
           //console.log(fs.readFileSync(runtimeEnv[`__JOB_${ii}_RESULT_FILE__`]))
           ii++;
         }
-        // add env to procs
+        // add env to script
         that[cmdattr].forEach(el => el.__runtimeEnv = runtimeEnv);
       }
 
@@ -315,12 +315,12 @@ module.exports = ({mongoose}) => {
     .then((script) => {
 
       // add related script
-      that.procs.forEach(el => {
+      that.script.forEach(el => {
         el.script = script;
       });
 
       return new Promise((resolve, reject) => {
-        asyncjs.series(that.procs.map(el => el.exec.bind(el)),
+        asyncjs.series(that.script.map(el => el.exec.bind(el)),
         function (err, values) {
           try {
             that.resultBuffer = fs.readFileSync(jobResultFile);
@@ -350,12 +350,12 @@ module.exports = ({mongoose}) => {
     .then((script) => {
 
       // add related script
-      that.rollbacks.forEach(el => {
+      that.rollback.forEach(el => {
         el.script = script;
       });
 
       return new Promise((resolve, reject) => {
-        asyncjs.series(that.rollbacks.map(el => el.exec.bind(el)),
+        asyncjs.series(that.rollback.map(el => el.exec.bind(el)),
         function (err, values) {
           try {
             that.rollbackResultBuffer = fs.readFileSync(jobResultFile);
@@ -373,7 +373,7 @@ module.exports = ({mongoose}) => {
   };
 
   mongoose.schemas.JobInstance.virtual('isFailure').get(function(_cb) {
-    return this.procs.filter(el => el.isFailure).length > 0;
+    return this.script.filter(el => el.isFailure).length > 0;
   });
 
   mongoose.schemas.JobInstance.virtual('isSuccess').get(function(_cb) {
@@ -385,7 +385,7 @@ module.exports = ({mongoose}) => {
   });
 
   mongoose.schemas.JobInstance.virtual('isRollbackFailure').get(function(_cb) {
-    return this.rollbacks.filter(el => el.isFailure).length > 0;
+    return this.rollback.filter(el => el.isFailure).length > 0;
   });
 
   mongoose.schemas.JobInstance.virtual('isRollbackSuccess').get(function(_cb) {

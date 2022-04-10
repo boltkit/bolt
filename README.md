@@ -65,7 +65,7 @@ Each job is started inside a tmp folder, so you can use that for temporaty stora
 ```yaml
 jobs:
   - name: Git clone example
-    procs:
+    script:
       - env:
           no_proxy: '*'
         bin: git
@@ -82,12 +82,12 @@ jobs:
 ```yaml
 jobs:
   - name: Docker pull example (with rollback)
-    procs:
+    script:
       - bin: docker
         opts:
           - pull
           - alpine
-    rollbacks:
+    rollback:
       - bin: docker
         opts:
           - rm
@@ -103,7 +103,7 @@ All commands executed inside the same job run in same tmp directory
 ```yaml
 jobs:
   - name: Simple file persistance example
-    procs:
+    script:
       - bin: echo
         opts:
           - test
@@ -129,7 +129,7 @@ This is very useful when you have to create multiple dependent resources with ra
 ```yaml
 jobs:
   - name: Simple job result storage example
-    procs:
+    script:
       - bin: curl
         opts:
           - "--insecure"
@@ -153,7 +153,7 @@ For example if you have 3 jobs you will have 3 variables: `__JOB_0_RESULT_FILE__
 ```yaml
 jobs:
   - name: Get color 0
-    procs:
+    script:
       - bin: curl
         opts:
           - "--insecure"
@@ -164,7 +164,7 @@ jobs:
           - ">"
           - $__JOB_RESULT_FILE__
   - name: Get color 1
-    procs:
+    script:
       - bin: curl
         opts:
           - "--insecure"
@@ -175,7 +175,7 @@ jobs:
           - ">"
           - $__JOB_RESULT_FILE__
   - name: Get color 2
-    procs:
+    script:
       - bin: curl
         opts:
           - "--insecure"
@@ -186,7 +186,7 @@ jobs:
           - ">"
           - $__JOB_RESULT_FILE__
   - name: Show colors
-    procs:
+    script:
       - bin: cat
         opts:
           - $__JOB_0_RESULT_FILE__
@@ -201,29 +201,29 @@ jobs:
 ```yaml
 jobs:
   - name: First Working Job
-    procs:
+    script:
       - bin: ls
         opts: []
-    rollbacks:
+    rollback:
       - bin: echo
         opts:
           - nothing to rollback
   - name: Second Working Job
-    procs:
+    script:
       - bin: ls
         opts: []
-    rollbacks:
+    rollback:
       - bin: echo
         opts:
           - rolling back second job
   - name: Third Failing Job
-    procs:
+    script:
       - bin: echo
         opts:
           - i will try to run unexisting binary and fail
       - bin: binarythatdoesnotexist
         opts: []
-    rollbacks:
+    rollback:
       - bin: echo
         opts:
           - rolling back 3rd job
@@ -237,8 +237,10 @@ jobs:
 - [v] improve UI
 - [v] update scripts feature
 - [v] handle script vars
+- [v] rename "script/rollback" in config/database 
 - manage job timeout
 - secure inputs
 - implement auth
 - implement api
 - vault integration
+
