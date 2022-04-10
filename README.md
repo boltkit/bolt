@@ -231,10 +231,14 @@ jobs:
 
 ### Todo:
 
-- implement rollback
-- store job results
-- read job results from other jobs and rollback jobs
-- improve UI
-- update scripts
-- handle script vars
+- [v] implement rollback
+- [v] store job results
+- [v] read job results from other jobs and rollback jobs
+- [v] improve UI
+- [v] update scripts feature
+- [v] handle script vars
 - manage job timeout
+- secure inputs
+- implement auth
+- implement api
+- vault integration
