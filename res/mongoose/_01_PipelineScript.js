@@ -2,6 +2,18 @@ const yaml = require('js-yaml');
 
 module.exports = ({mongoose}) => {
 
+  mongoose.schemas.PipelineVariable = mongoose.mongoose.Schema({
+    name: { type: String, index: false, required: true },
+    value: { type: String, index: false, required: true },
+    hidden: { type: Boolean, index: false, default: false } 
+  }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
+
+  mongoose.schemas.PipelineArgument = mongoose.mongoose.Schema({
+    name: { type: String, index: false, required: true },
+    type: { type: String, index: false, required: true },
+    defaultValue: { type: String, index: false, default: "" },
+  }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
+
   mongoose.schemas.PipelineScriptVersion = mongoose.mongoose.Schema({
     src: { type: Object, index: false, required: true },
   }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
@@ -33,6 +45,11 @@ module.exports = ({mongoose}) => {
     description: { type: String, index: false, required: false },
     versions: { type: [mongoose.schemas.PipelineScriptVersion], default: [] },
 
+    // variables and possible arguments
+    //vars: { type: [mongoose.schemas.PipelineVariable], default: [] },
+    //@todo
+    // args: { type: [mongoose.schemas.PipelineArgument], default: [] },
+
     // timestamps
     createdAt: { type: Date, index: true, default: Date.now },
     updatedAt: { type: Date, index: true, default: null },
@@ -44,6 +61,13 @@ module.exports = ({mongoose}) => {
    */
   mongoose.schemas.PipelineScript.virtual('lastVersion').get(function() {
     return this.versions[this.versions.length - 1];
+  });
+
+  /**
+   * Returns last version id
+   */
+  mongoose.schemas.PipelineScript.virtual('lastVersionCount').get(function() {
+    return this.versions.length - 1;
   });
 
   /**

@@ -100,27 +100,34 @@
 
 </style>
 
+<div>
+  <h3 class="page-title"><%= pipeline.scriptName || "-" %></h3>
+</div>
+
 <%- include('_breadcrumbs.html', {items: [
-  {title: "Home", uri: "/"},
-  {title: "Pipelines", uri: "/pipelines"},
-  {title: pipeline.id, uri: `/pipelines/${pipeline.id}`, status: pipeline.getStatus()}
+  {title: "pipelines", uri: "/pipelines"},
+  {title: pipeline.scriptName, uri: `/pipelines/${pipeline.id}`, status: pipeline.getStatus()}
 ]}) %>
 
 
+<div style="text-align: center;">
+  <div>
+    Created <%= moment(pipeline.createdAt).fromNow() %>
+    <br/>
+    <p>
+    <%= pipeline.description %>
+    </p>
+  </div>
 
-<div>
-  Created <%= moment(pipeline.createdAt).fromNow() %>
-  <br/>
+  <div>
+  pipeline: <span class="badge status <%= pipeline.getStatus() %>"><%= pipeline.getStatus() %></span>
+  </div>
+  <div>
+  rollback: <span class="badge status <%= pipeline.getRollbackStatus() %>"><%= pipeline.getRollbackStatus() %></span>
+  </div>
 </div>
 
-<div>
-pipeline: <span class="badge status <%= pipeline.getStatus() %>"><%= pipeline.getStatus() %></span>
-</div>
-<div>
-rollback: <span class="badge status <%= pipeline.getRollbackStatus() %>"><%= pipeline.getRollbackStatus() %></span>
-</div>
-
-<div style="display: flex">
+<div style="display: flex; justify-content: center;">
   <% let jobCounter = 0; %>
   <% pipeline.jobs.forEach(job => { %>
   <div class="job right <%= job.getStatus() %>"><a href="/pipelines/<%= pipeline.id %>/job/<%= jobCounter %>"><%= job.name %></a></div>
@@ -129,7 +136,7 @@ rollback: <span class="badge status <%= pipeline.getRollbackStatus() %>"><%= pip
 </div>
 
 <% if (pipeline.isRollbackNeeded) { %>
-<div style="display: flex">
+<div style="display: flex; justify-content: center;">
   <% let rollbackCounter = 0; %>
   <% pipeline.jobs.forEach(job => { %>
   <div class="job left <%= job.getRollbackStatus() %>"><a href="/pipelines/<%= pipeline.id %>/rollback/<%= rollbackCounter %>">rollback for <%= job.name %></a></div>

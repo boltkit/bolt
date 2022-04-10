@@ -1,0 +1,101 @@
+<%- include('_header.html') %>
+
+<script>
+  
+  function addVar() {
+    let nexLine = document.createElement("div");
+    let id = document.getElementsByClassName("script-var").length;
+    if (id < 5) {
+      nexLine.innerHTML = `
+      <div id="script-var-${id}" class="input-group script-var">
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="">#${id}</span>
+        </div>
+        <input type="text" class="form-control" id="vars_${id}_name" name="vars_name[]" placeholder="name"/>
+        <input type="text" class="form-control" id="vars_${id}_value" name="vars_value[]" placeholder="value"/>
+        <button type="button" class="btn btn-danger" onclick="rmVar(${id}); return false;">remove</button>
+        <button type="button" class="btn btn-primary" onclick="addVar(); return false;">add variable</button>
+      </div>
+      `;
+      document.getElementById('script-vars').append(nexLine);
+    }
+  }
+
+  function rmVar(id) {
+    document.getElementById(`script-var-${id}`).remove()
+  }
+
+    
+</script>
+<style>
+pre.src {
+  color: white;
+  background-color: black;
+  padding: 13px;
+  border-radius: 3px;
+}
+
+.script-pipeline {
+  display: inline-block;
+  padding: 20px;
+    padding-left: 20px;
+  margin: 10px;
+  padding-left: 0;
+  background-color: #fdfdfd;
+}
+</style>
+
+
+<!--
+<%- include('_breadcrumbs.html', {items: [
+  {title: "Home", uri: "/"},
+  {title: "Scripts", uri: "/scripts"},
+  {title: script.id, uri: `/scripts/${script.id}`, status: ""}
+]}) %>
+-->
+
+<div>
+  <h3 class="page-title">scripts / <%= script.name %></h3>
+  <p class="page-title">
+  <%= script.description %>
+  </p>
+</div>
+
+<div class="script-nav">
+  <ul class="nav nav-pills justify-content-center">
+    <li class="nav-item">
+      <a class="nav-link" href="<%= `/scripts/${script.id}` %>">Overview</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="<%= `/scripts/${script.id}/edit` %>">Source</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="<%= `/scripts/${script.id}/vars` %>">Variables</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" href="<%= `/scripts/${script.id}/pipelines` %>">Pipelines</a>
+    </li>
+  </ul>
+</div>
+
+<!--h4>Last 10 pipelines</h4-->
+<div>
+<% let ppcounter = 0; %>
+<% pipelines.forEach(pipeline => { if (/*ppcounter < 10*/true) { %>
+  <div class="script-pipeline">
+    <a href="/pipelines/<%= pipeline.id %>">Pipeline #<%= pipeline.id %></a>
+    <br/>
+    <p>
+      pipeline version: <%= pipeline.scriptVersion %>
+      <br/>
+      <%= moment(pipeline.createdAt).fromNow() %> 
+      <span class="status <%= pipeline.getStatus() %>"><%= pipeline.getStatus() %></span>
+    </p>
+  </div>
+  <% ppcounter++; %>
+<% }}) %>
+</div>
+
+
+<%- include('_footer.html') %>
+

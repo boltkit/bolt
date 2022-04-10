@@ -451,6 +451,10 @@ module.exports = ({mongoose}) => {
     isRollbackFinished: { type: Boolean, index: true, default: false },
     isRollbackRunning: { type: Boolean, index: true, default: false },
 
+    scriptId: {type: mongoose.mongoose.Types.ObjectId, index: true, default: null},
+    scriptVersion: {type: Number, index: true, default: 0},
+    scriptName: {type: String, index: false, default: ""},
+
     // local id of current job [0-X]
     currentJobId: { type: Number, index: true, default: 0 },
     // job states, including stdout, exit codes, etc...

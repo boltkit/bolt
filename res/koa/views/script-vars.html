@@ -1,0 +1,102 @@
+<%- include('_header.html') %>
+
+<script>
+  
+  function addVar() {
+    let nexLine = document.createElement("div");
+    let id = document.getElementsByClassName("script-var").length;
+    if (id < 5) {
+      nexLine.innerHTML = `
+      <div id="script-var-${id}" class="input-group script-var">
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="">#${id}</span>
+        </div>
+        <input type="text" class="form-control" id="vars_${id}_name" name="vars_name[]" placeholder="name"/>
+        <input type="text" class="form-control" id="vars_${id}_value" name="vars_value[]" placeholder="value"/>
+        <button type="button" class="btn btn-danger" onclick="rmVar(${id}); return false;">remove</button>
+        <button type="button" class="btn btn-primary" onclick="addVar(); return false;">add variable</button>
+      </div>
+      `;
+      document.getElementById('script-vars').append(nexLine);
+    }
+  }
+
+  function rmVar(id) {
+    document.getElementById(`script-var-${id}`).remove()
+  }
+
+    
+</script>
+<style>
+pre.src {
+  color: white;
+  background-color: black;
+  padding: 13px;
+  border-radius: 3px;
+}
+</style>
+
+
+<!--
+<%- include('_breadcrumbs.html', {items: [
+  {title: "Home", uri: "/"},
+  {title: "Scripts", uri: "/scripts"},
+  {title: script.id, uri: `/scripts/${script.id}`, status: ""}
+]}) %>
+-->
+
+<div>
+  <h3 class="page-title">scripts / <%= script.name %></h3>
+  <p class="page-title">
+  <%= script.description %>
+  </p>
+</div>
+
+<div class="script-nav">
+  <ul class="nav nav-pills justify-content-center">
+    <li class="nav-item">
+      <a class="nav-link" href="<%= `/scripts/${script.id}` %>">Overview</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="<%= `/scripts/${script.id}/edit` %>">Source</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" href="<%= `/scripts/${script.id}/vars` %>">Variables</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="<%= `/scripts/${script.id}/pipelines` %>">Pipelines</a>
+    </li>
+  </ul>
+</div>
+
+<form action="/scripts" method="post">
+
+  <fieldset>
+    
+    <div class="mb-3">
+      <label for="" class="form-label">Environment variables</label>
+
+      <div id="script-vars">
+        <div id="script-var-0" class="input-group script-var">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">#0</span>
+          </div>
+          <input type="text" class="form-control" id="vars_0_name" name="vars_name[]" placeholder="name"/>
+          <input type="text" class="form-control" id="vars_0_value" name="vars_value[]" placeholder="value"/>
+          <button type="button" class="btn btn-danger disabled" onclick="rmVar(0); return false;">remove</button>
+          <button type="button" class="btn btn-primary" onclick="addVar(); return false;">add variable</button>
+        </div>
+      </div>
+
+    </div>
+    
+    <div class="mb-3">
+      <input type="submit" class="btn btn-primary" value="save"/>
+    </div>
+  </fieldset>
+  
+  
+</form>
+
+<%- include('_footer.html') %>
+

@@ -47,7 +47,15 @@ class IndexController {
     if (script) {
       console.log("creating pipeline with script:")
       //console.log(script.srcYml)
-      const pipeline = new this.mongoose.models.PipelineInstance(script.srcObject);
+      const pipeline = new this.mongoose.models.PipelineInstance(Object.assign(
+        {},
+        script.srcObject,
+        {
+          scriptId: scriptId,
+          scriptVersion: script.lastVersionCount,
+          scriptName: script.name
+        }
+      ));
       await pipeline.save();
       //ctx.body = `Pipeline id: ${pipeline.id}`
       ctx.redirect(`/pipelines/${pipeline.id}`)

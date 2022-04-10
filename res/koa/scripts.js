@@ -9,10 +9,13 @@ class IndexController {
     this.mongoose = mongoose;
     koa.useRouter(koa.router
       .get('/scripts', this.showScripts.bind(this))
+      .get('/scripts/new', this.newScript.bind(this))
       .post('/scripts', this.createScript.bind(this))
       .get('/scripts/:id', this.showScript.bind(this))
       .post('/scripts/:id', this.createScriptVersion.bind(this))
       .get('/scripts/:id/edit', this.editScript.bind(this))
+      .get('/scripts/:id/vars', this.varsScript.bind(this))
+      .get('/scripts/:id/pipelines', this.pipelinesScript.bind(this))
     );
   }
 
@@ -26,9 +29,24 @@ class IndexController {
     await ctx.render('script', {script, moment});
   }
 
+  async newScript(ctx, next) {
+    await ctx.render('script-new', {});
+  }
+
   async editScript(ctx, next) {
     const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
     await ctx.render('script-edit', {script, moment});
+  }
+
+  async varsScript(ctx, next) {
+    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
+    await ctx.render('script-vars', {script, moment});
+  }
+
+  async pipelinesScript(ctx, next) {
+    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
+    const pipelines = await this.mongoose.models.PipelineInstance.find({scriptId: ctx.params.id});
+    await ctx.render('script-pipelines', {script, pipelines, moment});
   }
 
   async createScriptVersion(ctx, next) {
@@ -42,6 +60,7 @@ class IndexController {
    * Creates script to be run as pipeline
    */
   async createScript(ctx, next) {
+    console.log(ctx.request.body)
     const ajvInstance = new ajv();
     const validateSource = ajvInstance.compile({
       type: "object",
@@ -94,6 +113,8 @@ class IndexController {
         if (ctx.request.body.id) {
           const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.request.body.id});
           if (script) {
+            script.name = ctx.request.body.name;
+            script.description = ctx.request.body.description;
             script.versions.push({src});
             await script.save();
             ctx.redirect(`/scripts/${script.id}`); 

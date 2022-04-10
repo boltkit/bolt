@@ -1,24 +1,45 @@
 <%- include('_header.html') %>
 
 
+<style>
+
+.script-pipeline {
+  display: inline-block;
+  padding: 20px;
+    padding-left: 20px;
+  margin: 10px;
+  padding-left: 0;
+  background-color: #fdfdfd;
+}
+</style>
+
+<!--
 <%- include('_breadcrumbs.html', {items: [
   {title: "Home", uri: "/"},
   {title: "Pipelines", uri: "/pipelines"}
 ]}) %>
-
-
-<h4>Last 10 pipelines</h4>
+-->
+<div>
+  <h3 class="page-title">Last 10 pipelines</h3>
+</div>
 <div>
 <% let ppcounter = 0; %>
-<% pipelines.forEach(pipeline => { if (ppcounter < 10) { %>
-  <div>
-    <a href="/pipelines/<%= pipeline.id %>">Pipeline #<%= pipeline.id %> <%= moment(pipeline.createdAt).fromNow() %></a>
-    <span class="status <%= pipeline.getStatus() %>"><%= pipeline.getStatus() %></span>
+<% pipelines.forEach(pipeline => { if (ppcounter < 10 && pipeline.scriptId) { %>
+  <div class="script-pipeline">
+    <a href="/pipelines/<%= pipeline.id %>"><%= `${pipeline.scriptName}`.substr(0, 50) %>...</a>
+    <br/>
+    <p>
+      pipeline version: <%= pipeline.scriptVersion %>
+      <br/>
+      source: <a href="/sources/<%= pipeline.scriptId %>"><%= `${pipeline.scriptId}`.substr(0, 7) %>... (<%= pipeline.scriptVersion %>)</a>
+      <br/>
+      <%= moment(pipeline.createdAt).fromNow() %> 
+      <span class="status <%= pipeline.getStatus() %>"><%= pipeline.getStatus() %></span>
+    </p>
   </div>
   <% ppcounter++; %>
 <% }}) %>
 </div>
-
 
 
 <h4>Run pipeline</h4>
@@ -32,7 +53,7 @@
     </select>
   </div>
   <div class="mb-3">
-    <input type="submit" value="run"/>
+    <input type="submit" class="btn btn-primary" value="run"/>
   </div>
 </form>
 

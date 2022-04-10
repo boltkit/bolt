@@ -10,26 +10,41 @@ pre.src {
 </style>
 
 
-
+<!--
 <%- include('_breadcrumbs.html', {items: [
   {title: "Home", uri: "/"},
   {title: "Scripts", uri: "/scripts"},
   {title: script.id, uri: `/scripts/${script.id}`, status: ""}
 ]}) %>
-
+-->
 
 <div>
-  <h3>scripts / <%= script.name %></h3><span>(version #<%= script.versions.length %>)</span>
-  <p>
+  <h3 class="page-title">scripts / <%= script.name %> (version #<%= script.versions.length %>)</h3>
+  <p class="page-title">
   <%= script.description %>
   </p>
 </div>
 
+<div class="script-nav">
+  <ul class="nav nav-pills justify-content-center">
+    <li class="nav-item">
+      <a class="nav-link" href="<%= `/scripts/${script.id}` %>">Overview</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" href="<%= `/scripts/${script.id}/edit` %>">Source</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="<%= `/scripts/${script.id}/vars` %>">Variables</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="<%= `/scripts/${script.id}/pipelines` %>">Pipelines</a>
+    </li>
+  </ul>
+</div>
 
 <form action="/scripts" method="post">
 
   <fieldset>
-    <legend>Update script</legend>
 
     <input type="hidden" name="id" value="<%= script.id %>" />
 
@@ -49,7 +64,7 @@ pre.src {
     </div>
     
     <div class="mb-3">
-      <input type="submit" value="update"/>
+      <input type="submit" class="btn btn-primary" value="update"/>
     </div>
   </fieldset>
   

@@ -1,7 +1,10 @@
 <%- include('_header.html') %>
 
+<div>
+  <h3 class="page-title"><%= job.name %> *rollback*</h3>
+</div>
+
 <%- include('_breadcrumbs.html', {items: [
-  {title: "Home", uri: "/"},
   {title: "Pipelines", uri: "/pipelines"},
   {title: pipeline.id, uri: `/pipelines/${pipeline.id}`},
   {title: job.name, uri: "", status: job.getStatus()}
