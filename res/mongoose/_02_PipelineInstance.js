@@ -58,6 +58,7 @@ module.exports = ({mongoose}) => {
           cwd: this.cwd,
           env: Object.assign(
             {},
+            this.__parentPipelineInstance.args.reduce((obj, item) => Object.assign(obj, { [item.name]: JSON.stringify(item.value) }), {}),
             process.env,
             this.env,
             {__JOB_RESULT_FILE__: this.__jobResultFile},
@@ -136,6 +137,7 @@ module.exports = ({mongoose}) => {
             cwd: this.cwd,
             env: Object.assign(
               {},
+              this.__parentPipelineInstance.args.reduce((obj, item) => Object.assign(obj, { [item.name]: JSON.stringify(item.value) }), {}),
               process.env,
               this.env,
               {__JOB_RESULT_FILE__: this.__jobResultFile},
@@ -381,7 +383,7 @@ module.exports = ({mongoose}) => {
   });
 
   mongoose.schemas.JobInstance.virtual('resultString').get(function(_cb) {
-    return this.resultBuffer.toString();
+    return this.resultBuffer?this.resultBuffer.toString():'';
   });
 
   mongoose.schemas.JobInstance.virtual('isRollbackFailure').get(function(_cb) {
@@ -393,7 +395,7 @@ module.exports = ({mongoose}) => {
   });
 
   mongoose.schemas.JobInstance.virtual('rollbackResultString').get(function(_cb) {
-    return this.rollbackResultBuffer.toString();
+    return this.rollbackResultBuffer?this.rollbackResultBuffer.toString():'';
   });
 
   mongoose.schemas.JobInstance.methods.getRollbackStatus = function(_cb) {
@@ -433,6 +435,21 @@ module.exports = ({mongoose}) => {
 
 
   /**
+   * Pipeline argument
+   */
+  mongoose.schemas.PipelineArgument = mongoose.mongoose.Schema({
+    name: { type: String, index: false, required: true },
+    schema: { type: {}, required: true, },
+    value: { type: mongoose.mongoose.Mixed, index: false, required: true }
+  }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
+
+
+  mongoose.schemas.PipelineArgument.methods.validateSchema = function() {
+    return false;
+  };
+
+
+  /**
    * Pipeline
    */
   mongoose.schemas.PipelineInstance = mongoose.mongoose.Schema({
@@ -455,6 +472,9 @@ module.exports = ({mongoose}) => {
     currentJobId: { type: Number, index: true, default: 0 },
     // job states, including stdout, exit codes, etc...
     jobs: { type: [mongoose.schemas.JobInstance], index: true, required: true },
+
+    // pipeline arguments
+    args: { type: [mongoose.schemas.PipelineArgument], default: [] },
 
     // timestamps
     createdAt: { type: Date, index: true, default: Date.now },

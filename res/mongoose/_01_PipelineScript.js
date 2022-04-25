@@ -8,12 +8,6 @@ module.exports = ({mongoose}) => {
     hidden: { type: Boolean, index: false, default: false } 
   }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
 
-  mongoose.schemas.PipelineArgument = mongoose.mongoose.Schema({
-    name: { type: String, index: false, required: true },
-    type: { type: String, index: false, required: true },
-    defaultValue: { type: String, index: false, default: "" },
-  }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
-
   mongoose.schemas.PipelineScriptVersion = mongoose.mongoose.Schema({
     src: { type: Object, index: false, required: true },
   }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
@@ -47,8 +41,6 @@ module.exports = ({mongoose}) => {
 
     // variables and possible arguments
     vars: { type: [mongoose.schemas.PipelineVariable], default: [] },
-    //@todo
-    // args: { type: [mongoose.schemas.PipelineArgument], default: [] },
 
     // timestamps
     createdAt: { type: Date, index: true, default: Date.now },
@@ -69,6 +61,21 @@ module.exports = ({mongoose}) => {
   mongoose.schemas.PipelineScript.virtual('lastVersionCount').get(function() {
     return this.versions.length - 1;
   });
+
+  /**
+   * Returns last version arguments object
+   */
+  mongoose.schemas.PipelineScript.virtual('args').get(function() {
+    return this.lastVersion.src.args;
+  });
+
+  mongoose.schemas.PipelineScript.methods.getArgByName = function(name) {
+    const args = this.args.filter(el => el.name === name);
+    if (args.length === 1) {
+      return args[0];
+    }
+    return null;
+  };
 
   /**
    * Returns last version source object

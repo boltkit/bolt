@@ -110,22 +110,62 @@
 ]}) %>
 
 
+
+
+
 <div style="text-align: center;">
   <div>
-    Created <%= moment(pipeline.createdAt).fromNow() %>
+    Created <%= moment(pipeline.createdAt).fromNow() %><br/>
+    Execution status: <span class="badge status <%= pipeline.getStatus() %>"><%= pipeline.getStatus() %></span>
+    <% if (pipeline.isRollbackNeeded) { %>
+    <br/>
+    Rollback status: <span class="badge status <%= pipeline.getRollbackStatus() %>"><%= pipeline.getRollbackStatus() %></span>
+    <% } %>
     <br/>
     <p>
     <%= pipeline.description %>
     </p>
+    <p>
+      <a class="btn btn-light" href="/scripts/<%= script.id %>">Switch to script view</a>
+    </p>
   </div>
 
+
   <div>
-  pipeline: <span class="badge status <%= pipeline.getStatus() %>"><%= pipeline.getStatus() %></span>
+  
   </div>
   <div>
-  rollback: <span class="badge status <%= pipeline.getRollbackStatus() %>"><%= pipeline.getRollbackStatus() %></span>
   </div>
 </div>
+
+
+<% if (pipeline.args && pipeline.args.length > 0) { %>
+<div >
+  <h3 class="page-title">Arguments</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Argument</th>
+        <th scope="col">Type</th>
+        <th scope="col">Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% pipeline.args.forEach(arg => { %>
+      <tr>
+        <th scope="row"><%= arg.name %></th>
+        <td><%= arg.schema.type %></td>
+        <td><%= JSON.stringify(arg.value) %></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <br/>
+</div>
+<% } %>
+
+<br/><br/>
+<h3 class="page-title">Job sequence</h3>
 
 <div style="display: flex; justify-content: center;">
   <% let jobCounter = 0; %>
@@ -144,6 +184,8 @@
   <% }) %>
 </div>
 <% } %>
+
+
 
 <!-- div id="pipeline_<%= pipeline.id %>" style="margin-left: 30px">
 <% pipeline.jobs.forEach(job => { %>

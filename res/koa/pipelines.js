@@ -1,4 +1,5 @@
 const moment = require("moment")
+const ajv = require("ajv");
 
 class IndexController {
 
@@ -23,33 +24,66 @@ class IndexController {
 
   async showJobInstance(ctx, next) {
     const pipeline = await this.mongoose.models.PipelineInstance.findOne({_id: ctx.params.id});
+    const script = await this.mongoose.models.PipelineScript.findOne({_id: pipeline.scriptId});
     const job = pipeline.jobs[ctx.params.jobid];
-    await ctx.render('job', {pipeline, job, moment})
+    await ctx.render('job', {script, pipeline, job, moment})
   }
 
   async showRollbackInstance(ctx, next) {
     const pipeline = await this.mongoose.models.PipelineInstance.findOne({_id: ctx.params.id});
+    const script = await this.mongoose.models.PipelineScript.findOne({_id: pipeline.scriptId});
     const job = pipeline.jobs[ctx.params.jobid];
-    await ctx.render('rollback', {pipeline, job, moment})
+    await ctx.render('rollback', {script, pipeline, job, moment})
   }
 
   async showPipelineInstance(ctx, next) {
     const pipeline = await this.mongoose.models.PipelineInstance.findOne({_id: ctx.params.id});
-    await ctx.render('pipeline', {pipeline, moment})
+    const script = await this.mongoose.models.PipelineScript.findOne({_id: pipeline.scriptId});
+    await ctx.render('pipeline', {script, pipeline, moment})
   }
 
   /**
    * Creates
    */
   async createPipeline(ctx, next) {
+    const ajvi = new ajv();
     const scriptId = ctx.request.body.scriptId;
     const script = await this.mongoose.models.PipelineScript.findOne({_id: scriptId});
     if (script) {
       console.log("creating pipeline with script:")
+      let args = [];
+      // check args
+      if (script.args) {
+        // build args
+        for (let arg of script.args) {
+          let argValue = ctx.request.body[arg.name];
+          try {
+            argValue = JSON.parse(argValue);
+          } catch (err) {
+            //console.log(err)
+          }
+
+          // validate schema
+          if (!ajvi.validate(arg.schema, argValue)) {
+            ctx.body = `Bad argument value for ${arg.name}`
+            return;
+          }
+          // else argument is valid, we add it
+          args.push({
+            name: arg.name,
+            schema: arg.schema,
+            value: argValue
+          });
+        }
+      }
+
       //console.log(script.srcYml)
       const pipeline = new this.mongoose.models.PipelineInstance(Object.assign(
         {},
         script.srcObject,
+        {
+          args
+        },
         {
           scriptId: scriptId,
           scriptVersion: script.lastVersionCount,

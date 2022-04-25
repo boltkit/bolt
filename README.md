@@ -229,6 +229,56 @@ jobs:
           - rolling back 3rd job
 ```
 
+
+### Args passing example
+
+```yaml
+args:
+  - name: BOLT_ARG_STRING
+    schema:
+      type: string
+  - name: BOLT_ARG_ARRAY
+    schema:
+      type: array
+  - name: BOLT_ARG_OBJECT
+    schema:
+      type: object
+      properties:
+        bin:
+          type: string
+        opts:
+          type: array
+          items:
+            type: string
+        env:
+          type: array
+      required:
+        - bin
+        - opts
+        - env
+      additionalProperties: false
+jobs:
+  - name: Show args
+    script:
+      - bin: echo
+        opts:
+          - $BOLT_ARG_STRING
+          - '|'
+          - jq
+      - bin: echo
+        opts:
+          - $BOLT_ARG_ARRAY
+          - '|'
+          - jq
+      - bin: echo
+        opts:
+          - $BOLT_ARG_OBJECT
+          - '|'
+          - jq
+```
+
+
+
 ### Todo:
 
 - [v] implement rollback
@@ -237,7 +287,8 @@ jobs:
 - [v] improve UI
 - [v] update scripts feature
 - [v] handle script vars
-- [v] rename "script/rollback" in config/database 
+- [v] rename "script/rollback" in config/database
+- [v] implement pipeline args 
 - manage job timeout
 - secure inputs
 - implement auth

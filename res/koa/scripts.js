@@ -1,6 +1,7 @@
 const moment = require("moment")
 const ajv = require("ajv");
 const yaml = require('js-yaml');
+const jsf = require('json-schema-faker');
 
 class IndexController {
 
@@ -27,7 +28,7 @@ class IndexController {
 
   async showScript(ctx, next) {
     const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
-    await ctx.render('script', {script, moment});
+    await ctx.render('script', {script, moment, yaml, jsf});
   }
 
   async newScript(ctx, next) {
@@ -87,42 +88,55 @@ class IndexController {
    */
   async createScript(ctx, next) {
     console.log(ctx.request.body)
-    const ajvInstance = new ajv();
+    const ajvInstance = new ajv({useDefaults: true});
     const validateSource = ajvInstance.compile({
       type: "object",
       properties: {
-        jobs: {type: "array"},
-        items: {
-          type: "object",
-          properties: {
-            name: {type: "string"},
-            // run processes
-            script: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  bin: {type: "string"},
-                  opts: {
-                    type: "array",
-                    items: {type: "string"}
-                  },
-                  env: {type: "object"}
-                }
-              }
+        args: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: {type: "string", pattern: "^BOLT_ARG_[a-zA-Z0-9]+$", minLength: ("BOLT_ARG_".length + 2), maxLength: ("BOLT_ARG_".length + 100)},
+              schema: {type: "object", default: {type: "string"}}
             },
-            // rollback processes
-            rollback: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  bin: {type: "string"},
-                  opts: {
-                    type: "array",
-                    items: {type: "string"}
-                  },
-                  env: {type: "object"}
+            required: ["name"]
+          }
+        },
+        jobs: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: {type: "string"},
+              // run processes
+              script: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    bin: {type: "string"},
+                    opts: {
+                      type: "array",
+                      items: {type: "string"}
+                    },
+                    env: {type: "object"}
+                  }
+                }
+              },
+              // rollback processes
+              rollback: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    bin: {type: "string"},
+                    opts: {
+                      type: "array",
+                      items: {type: "string"}
+                    },
+                    env: {type: "object"}
+                  }
                 }
               }
             }
