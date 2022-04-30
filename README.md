@@ -396,6 +396,7 @@ jobs:
 - [v] implement pipeline args
 - [v] script slugs
 - [v] before/after job hooks
+- [v] implement repeat pipeline
 - manage job timeout
 - secure inputs
 - implement auth
