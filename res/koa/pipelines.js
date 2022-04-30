@@ -9,6 +9,7 @@ class IndexController {
     koa.useRouter(koa.router
       .get('/pipelines', this.showPipelineInstances.bind(this))
       .get('/pipelines/:id', this.showPipelineInstance.bind(this))
+      .post('/pipelines/:id/repeat', this.repeatPipelineInstance.bind(this))
       .get('/pipelines/:id/job/:jobid', this.showJobInstance.bind(this))
       .get('/pipelines/:id/rollback/:jobid', this.showRollbackInstance.bind(this))
       .get('/pipeline/process', this.processPipeline.bind(this))
@@ -92,6 +93,34 @@ class IndexController {
       ));
       await pipeline.save();
       //ctx.body = `Pipeline id: ${pipeline.id}`
+      ctx.redirect(`/pipelines/${pipeline.id}`)
+    } else {
+      ctx.body = "Failed to create"
+    }
+  }
+
+  async repeatPipelineInstance(ctx, next) {
+    const oldPipeline = await this.mongoose.models.PipelineInstance.findOne({_id: ctx.params.id});
+    const script = await this.mongoose.models.PipelineScript.findOne({_id: oldPipeline.scriptId});
+
+    
+    const ajvi = new ajv();
+    if (script && oldPipeline) {
+      console.log(`repeat pipeline ${oldPipeline.id}`)
+      let args = oldPipeline.args;
+      const pipeline = new this.mongoose.models.PipelineInstance(Object.assign(
+        {},
+        script.srcObjectCompiled,
+        {
+          args
+        },
+        {
+          scriptId: script.id,
+          scriptVersion: script.lastVersionCount,
+          scriptName: script.name
+        }
+      ));
+      await pipeline.save();
       ctx.redirect(`/pipelines/${pipeline.id}`)
     } else {
       ctx.body = "Failed to create"

@@ -127,6 +127,9 @@
     </p>
     <p>
       <a class="btn btn-light" href="/scripts/<%= script.slug || script.id %>">Switch to script view</a>
+      <form style="display: inline-block" action="/pipelines/<%= pipeline.id %>/repeat" method="post">
+        <button class="btn btn-light">Repeat</button>
+      </form>
     </p>
   </div>
 
