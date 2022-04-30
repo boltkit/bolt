@@ -288,7 +288,8 @@ jobs:
 - [v] update scripts feature
 - [v] handle script vars
 - [v] rename "script/rollback" in config/database
-- [v] implement pipeline args 
+- [v] implement pipeline args
+- [v] script slugs
 - manage job timeout
 - secure inputs
 - implement auth
