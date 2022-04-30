@@ -94,7 +94,7 @@ class IndexController {
 
       const pipeline = new this.mongoose.models.PipelineInstance(Object.assign(
         {},
-        script.srcObject,
+        script.srcObjectCompiled,
         {
           scriptId: script.id,
           scriptVersion: script.lastVersionCount,

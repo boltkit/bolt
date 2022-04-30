@@ -80,7 +80,7 @@ class IndexController {
       //console.log(script.srcYml)
       const pipeline = new this.mongoose.models.PipelineInstance(Object.assign(
         {},
-        script.srcObject,
+        script.srcObjectCompiled,
         {
           args
         },

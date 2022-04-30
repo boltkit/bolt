@@ -279,6 +279,111 @@ jobs:
 
 
 
+### Before Job scripts
+
+Use before_job to repeat some action before every job in your pipeline.
+Most of the time you will be using it to authenticate against some service.
+It is important to understand that beforeJob is not yet another job, it will be prepended to whatever commands you already have in your jobs instead.
+
+Aso note that you can set pipeline wide env variables using `beforeJob.env`. Environment variables will be injected just before script specific environment vars
+
+```yaml
+beforeJob:
+  env:
+    TEST_VAR: 'TEST_VAR from beforeJob'
+  script:
+    - bin: docker
+      opts:
+        - pull
+        - alpine
+jobs:
+  - name: Get release
+    script:
+      - bin: docker
+        opts:
+          - run
+          - alpine
+          - cat
+          - /etc/os-release
+  - name: Show global env
+    script:
+      - bin: echo
+        opts:
+          - $TEST_VAR
+```
+
+
+### Before Job scripts 2
+
+Same thing works for rollback scripts
+
+```yaml
+beforeJob:
+  env:
+    TEST_VAR: 'TEST_VAR from beforeJob'
+  script:
+    - bin: docker
+      opts:
+        - pull
+        - alpine
+  rollback:
+    - bin: echo
+      opts:
+        - rollback before hook
+jobs:
+  - name: Get release
+    script:
+      - bin: docker
+        opts:
+          - run
+          - alpine
+          - cat
+          - /etc/os-release
+  - name: Fail job on purpose
+    script:
+      - bin: binary_that_does_not_exist
+```
+
+
+### After Job test
+
+Same thing works for afterJob to append script / rollback
+
+```yaml
+beforeJob:
+  env:
+    TEST_VAR: 'TEST_VAR from beforeJob'
+  script:
+    - bin: echo
+      opts:
+        - script before hook
+  rollback:
+    - bin: echo
+      opts:
+        - rollback before hook
+afterJob:
+  script:
+    - bin: echo
+      opts:
+        - script after hook
+  rollback:
+    - bin: echo
+      opts:
+        - rollback after hook
+jobs:
+  - name: Get release
+    script:
+      - bin: echo
+        opts: ["dummy job"]
+  - name: Fail job on purpose
+    script:
+      - bin: binary_that_does_not_exist
+```
+
+
+
+
+
 ### Todo:
 
 - [v] implement rollback

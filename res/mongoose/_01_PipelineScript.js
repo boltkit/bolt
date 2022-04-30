@@ -86,6 +86,67 @@ module.exports = ({mongoose}) => {
   });
 
   /**
+   * Returns last version source object, compiled to be executed by runner
+   *
+   * - it prepends every job.script with beforeJob.script
+   * - it appends every job.script with afterJob.script
+   */
+  mongoose.schemas.PipelineScript.virtual('srcObjectCompiled').get(function() {
+    let src = JSON.parse(JSON.stringify(this.lastVersion.src)); // TODO: use structuredClone when reached Node 17 in production
+    if (src.beforeJob) {
+      // prepend script to jobs
+      if (src.beforeJob.script) {
+        src.jobs = src.jobs.map(job => {
+          job.script = src.beforeJob.script.concat(job.script);
+          return job;
+        }); 
+      }
+      // prepend rollback to jobs
+      if (src.beforeJob.rollback) {
+        src.jobs = src.jobs.map(job => {
+          job.rollback = src.beforeJob.rollback.concat(job.rollback || []);
+          return job;
+        }); 
+      }
+      // prepend env to jobs (script and rollback)
+      if (src.beforeJob.env) {
+        src.jobs = src.jobs.map(job => {
+          // for scripts
+          job.script = job.script.map(proc => {
+            proc.env = Object.assign({}, src.beforeJob.env||{}, proc.env||{});
+            return proc;
+          });
+          // for rollback
+          job.rollback = (job.rollback || []).map(proc => {
+            proc.env = Object.assign({}, src.beforeJob.env||{}, proc.env||{});
+            return proc;
+          });
+          return job;
+        }); 
+      }
+    }
+    if (src.afterJob) {
+      // append script to jobs
+      if (src.afterJob.script) {
+        src.jobs = src.jobs.map(job => {
+          job.script = job.script.concat(src.afterJob.script);
+          return job;
+        });
+      }
+      // append rollback to jobs
+      if (src.afterJob.rollback) {
+        src.jobs = src.jobs.map(job => {
+          job.rollback = (job.rollback || []).concat(src.afterJob.rollback);
+          return job;
+        });
+      }
+    }
+    //console.log("MERGED JOBS");
+    //console.log(JSON.stringify(src, null, 4))
+    return src;
+  });
+
+  /**
    * Returns last version source json
    */
   mongoose.schemas.PipelineScript.virtual('srcJson').get(function() {

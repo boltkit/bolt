@@ -103,6 +103,92 @@ class IndexController {
             required: ["name"]
           }
         },
+        beforeJob: {
+          type: "object",
+          properties: {
+            // pipeine wide env variables
+            env: {
+              type: "object"
+            },
+            // run processes
+            script: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  bin: {type: "string"},
+                  opts: {
+                    type: "array",
+                    items: {type: "string"}
+                  },
+                  env: {type: "object"}
+                },
+                required: ["bin"],
+                additionalProperties: false
+              }
+            },
+            // rollback processes
+            rollback: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  bin: {type: "string"},
+                  opts: {
+                    type: "array",
+                    items: {type: "string"}
+                  },
+                  env: {type: "object"}
+                },
+                required: ["bin"],
+                additionalProperties: false
+              }
+            }
+          },
+          required: ["script"],
+          additionalProperties: false
+        },
+        afterJob: {
+          type: "object",
+          properties: {
+            // run processes
+            script: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  bin: {type: "string"},
+                  opts: {
+                    type: "array",
+                    items: {type: "string"}
+                  },
+                  env: {type: "object"}
+                },
+                required: ["bin"],
+                additionalProperties: false
+              }
+            },
+            // rollback processes
+            rollback: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  bin: {type: "string"},
+                  opts: {
+                    type: "array",
+                    items: {type: "string"}
+                  },
+                  env: {type: "object"}
+                },
+                required: ["bin"],
+                additionalProperties: false
+              }
+            }
+          },
+          required: ["script"],
+          additionalProperties: false
+        },
         jobs: {
           type: "array",
           items: {
@@ -121,7 +207,9 @@ class IndexController {
                       items: {type: "string"}
                     },
                     env: {type: "object"}
-                  }
+                  },
+                  required: ["bin"],
+                  additionalProperties: false
                 }
               },
               // rollback processes
@@ -136,10 +224,14 @@ class IndexController {
                       items: {type: "string"}
                     },
                     env: {type: "object"}
-                  }
+                  },
+                  required: ["bin"],
+                  additionalProperties: false
                 }
               }
-            }
+            },
+            required: ["name", "script"],
+            additionalProperties: false
           }
         }
       },
