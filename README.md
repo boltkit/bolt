@@ -395,6 +395,7 @@ jobs:
 - [v] rename "script/rollback" in config/database
 - [v] implement pipeline args
 - [v] script slugs
+- [v] before/after job hooks
 - manage job timeout
 - secure inputs
 - implement auth
