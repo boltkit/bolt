@@ -14,7 +14,7 @@
 <ul>
 <% scripts.forEach(script => { %>
   <li>
-    <a href="/scripts/<%= script.id %>"><%= script.name %></a>
+    <a href="/scripts/<%= script.slug || script.id %>"><%= script.name %></a>
   </li>
 <% }) %>
 </ul>

@@ -28,16 +28,16 @@ pre.src {
 <div class="script-nav">
   <ul class="nav nav-pills justify-content-center">
     <li class="nav-item">
-      <a class="nav-link" href="<%= `/scripts/${script.id}` %>">Overview</a>
+      <a class="nav-link" href="<%= `/scripts/${script.slug || script.id}` %>">Overview</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link active" href="<%= `/scripts/${script.id}/edit` %>">Source</a>
+      <a class="nav-link active" href="<%= `/scripts/${script.slug || script.id}/edit` %>">Source</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="<%= `/scripts/${script.id}/vars` %>">Variables</a>
+      <a class="nav-link" href="<%= `/scripts/${script.slug || script.id}/vars` %>">Variables</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="<%= `/scripts/${script.id}/pipelines` %>">Pipelines</a>
+      <a class="nav-link" href="<%= `/scripts/${script.slug || script.id}/pipelines` %>">Pipelines</a>
     </li>
   </ul>
 </div>
@@ -51,6 +51,11 @@ pre.src {
     <div class="mb-3">
       <label for="name" class="form-label">Script name</label>
       <input type="text" class="form-control" id="name" name="name" placeholder="source name" value="<%= script.name %>">
+    </div>
+
+    <div class="mb-3">
+      <label for="slug" class="form-label">Unique Slug</label>
+      <input id="slug" class="form-control" name="slug" rows="10" style="width:100%" value="<%= script.slug %>"/>
     </div>
 
     <div class="mb-3">

@@ -64,16 +64,16 @@ pre.src {
 <div class="script-nav">
   <ul class="nav nav-pills justify-content-center">
     <li class="nav-item">
-      <a class="nav-link" href="<%= `/scripts/${script.id}` %>">Overview</a>
+      <a class="nav-link" href="<%= `/scripts/${script.slug || script.id}` %>">Overview</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="<%= `/scripts/${script.id}/edit` %>">Source</a>
+      <a class="nav-link" href="<%= `/scripts/${script.slug || script.id}/edit` %>">Source</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="<%= `/scripts/${script.id}/vars` %>">Variables</a>
+      <a class="nav-link" href="<%= `/scripts/${script.slug || script.id}/vars` %>">Variables</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link active" href="<%= `/scripts/${script.id}/pipelines` %>">Pipelines</a>
+      <a class="nav-link active" href="<%= `/scripts/${script.slug || script.id}/pipelines` %>">Pipelines</a>
     </li>
   </ul>
 </div>

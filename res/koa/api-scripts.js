@@ -32,7 +32,7 @@ class IndexController {
   }
 
   async getScript(ctx, next) {
-    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
+    const script = this.mongoose.mongoose.Types.ObjectId.isValid(ctx.params.id) ? await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id}) : await this.mongoose.models.PipelineScript.findOne({slug: ctx.params.id});
     ctx.response.status = 200;
     ctx.response.body = {
       script: {
@@ -48,7 +48,7 @@ class IndexController {
   }
 
   async listScriptPipelines(ctx, next) {
-    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
+    const script = this.mongoose.mongoose.Types.ObjectId.isValid(ctx.params.id) ? await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id}) : await this.mongoose.models.PipelineScript.findOne({slug: ctx.params.id});
     const pipelines = await this.mongoose.models.PipelineInstance.find({scriptId: ctx.params.id}, null, {sort: { createdAt: -1 }});
     ctx.response.status = 200;
     ctx.response.body = {
@@ -67,9 +67,8 @@ class IndexController {
 
   async spawnScriptPipeline(ctx, next) {
     const ajvi = new ajv();
-    const scriptId = ctx.params.id;
-    const script = await this.mongoose.models.PipelineScript.findById(scriptId);
-    
+    const script = this.mongoose.mongoose.Types.ObjectId.isValid(ctx.params.id) ? await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id}) : await this.mongoose.models.PipelineScript.findOne({slug: ctx.params.id});
+
     if (script) {
       let args = [];
       // check args
@@ -97,7 +96,7 @@ class IndexController {
         {},
         script.srcObject,
         {
-          scriptId: scriptId,
+          scriptId: script.id,
           scriptVersion: script.lastVersionCount,
           scriptName: script.name,
           args: args
@@ -113,7 +112,7 @@ class IndexController {
     } else {
       ctx.response.status = 404;
       ctx.response.body = {
-        msg: `Script ${scriptId} not found`
+        msg: `Script ${ctx.params.id} not found`
       };
     }
   }

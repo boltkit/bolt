@@ -5,7 +5,7 @@ module.exports = ({mongoose}) => {
   mongoose.schemas.PipelineVariable = mongoose.mongoose.Schema({
     name: { type: String, index: false, required: true },
     value: { type: String, index: false, required: true },
-    hidden: { type: Boolean, index: false, default: false } 
+    hidden: { type: Boolean, index: false, default: false }
   }, {toJSON: {virtuals: true}, toObject: {virtuals: true}});
 
   mongoose.schemas.PipelineScriptVersion = mongoose.mongoose.Schema({
@@ -37,6 +37,7 @@ module.exports = ({mongoose}) => {
   mongoose.schemas.PipelineScript = mongoose.mongoose.Schema({
     name: { type: String, index: false, required: false },
     description: { type: String, index: false, required: false },
+    slug: { type: String, index: { unique: true, partialFilterExpression: { slug: { $type: "string" } } } },
     versions: { type: [mongoose.schemas.PipelineScriptVersion], default: [] },
 
     // variables and possible arguments

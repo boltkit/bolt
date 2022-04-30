@@ -27,7 +27,7 @@ class IndexController {
   }
 
   async showScript(ctx, next) {
-    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
+    const script = this.mongoose.mongoose.Types.ObjectId.isValid(ctx.params.id) ? await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id}) : await this.mongoose.models.PipelineScript.findOne({slug: ctx.params.id});
     await ctx.render('script', {script, moment, yaml, jsf});
   }
 
@@ -36,17 +36,17 @@ class IndexController {
   }
 
   async editScript(ctx, next) {
-    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
+    const script = this.mongoose.mongoose.Types.ObjectId.isValid(ctx.params.id) ? await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id}) : await this.mongoose.models.PipelineScript.findOne({slug: ctx.params.id});
     await ctx.render('script-edit', {script, moment});
   }
 
   async getScriptVars(ctx, next) {
-    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
+    const script = this.mongoose.mongoose.Types.ObjectId.isValid(ctx.params.id) ? await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id}) : await this.mongoose.models.PipelineScript.findOne({slug: ctx.params.id});
     await ctx.render('script-vars', {script, moment});
   }
 
   async setScriptVars(ctx, next) {
-    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
+    const script = this.mongoose.mongoose.Types.ObjectId.isValid(ctx.params.id) ? await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id}) : await this.mongoose.models.PipelineScript.findOne({slug: ctx.params.id});
     if (ctx.request.body.vars_name && ctx.request.body.vars_value &&
         Array.isArray(ctx.request.body.vars_name) && Array.isArray(ctx.request.body.vars_value) &&
         ctx.request.body.vars_name.length === ctx.request.body.vars_value.length)
@@ -71,13 +71,13 @@ class IndexController {
   }
 
   async showScriptPipelines(ctx, next) {
-    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
-    const pipelines = await this.mongoose.models.PipelineInstance.find({scriptId: ctx.params.id}, null, {sort: { createdAt: -1 }});
+    const script = this.mongoose.mongoose.Types.ObjectId.isValid(ctx.params.id) ? await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id}) : await this.mongoose.models.PipelineScript.findOne({slug: ctx.params.id});
+    const pipelines = await this.mongoose.models.PipelineInstance.find({scriptId: script.id}, null, {sort: { createdAt: -1 }});
     await ctx.render('script-pipelines', {script, pipelines, moment});
   }
 
   async createScriptVersion(ctx, next) {
-    const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id});
+    const script = this.mongoose.mongoose.Types.ObjectId.isValid(ctx.params.id) ? await this.mongoose.models.PipelineScript.findOne({_id: ctx.params.id}) : await this.mongoose.models.PipelineScript.findOne({slug: ctx.params.id});
     script.versions.push(ctx.params.src);
     await script.save();
     await ctx.status(200).json({msg: "done"});
@@ -154,15 +154,22 @@ class IndexController {
           const script = await this.mongoose.models.PipelineScript.findOne({_id: ctx.request.body.id});
           if (script) {
             script.name = ctx.request.body.name;
+            if (ctx.request.body.slug &&
+                typeof(ctx.request.body.slug) === "string" &&
+                ctx.request.body.slug.trim().length > 0 &&
+                /^[a-zA-Z0-9_-]+$/.test(ctx.request.body.slug) &&
+                script.slug !== ctx.request.body.slug) {
+              script.slug = ctx.request.body.slug; 
+            }
             script.description = ctx.request.body.description;
             script.versions.push({src});
             await script.save();
-            ctx.redirect(`/scripts/${script.id}`); 
+            ctx.redirect(`/scripts/${script.slug || script.id}`); 
           } else {
             throw Error(`Script not found ${ctx.request.body.id}`);
           }
         } else {
-          const script = new this.mongoose.models.PipelineScript({
+          let _newobj = {
             name: ctx.request.body.name,
             description: ctx.request.body.description || "",
             versions: [
@@ -170,9 +177,16 @@ class IndexController {
                 src: src
               }
             ]
-          });
+          };
+          if (ctx.request.body.slug &&
+              typeof(ctx.request.body.slug) === "string" &&
+              ctx.request.body.slug.trim().length > 0 &&
+              /^[a-zA-Z0-9_-]+$/.test(ctx.request.body.slug)) {
+            _newobj.slug = ctx.request.body.slug; 
+          }
+          const script = new this.mongoose.models.PipelineScript(_newobj);
           await script.save();
-          ctx.redirect(`/scripts/${script.id}`);
+          ctx.redirect(`/scripts/${script.slug || script.id}`);
         }
       } else {
         console.error(validateSource.errors)
