@@ -401,5 +401,12 @@ jobs:
 - secure inputs
 - implement auth
 - implement api
+- add BOLT_ARG_***_RAW that strips quotes from json strings
+- BOLT_ARG_ shall have _ allowed in it
+- PUBLIC_URL config to be able to render curl request correctly and such
+- being able to reuse config fro other config files {{ CONFIG.filename.someAttibute }}
+- implement projects and project level environments
+- implement optional hidden/clear variable switch
+- think about configuration store
 - vault integration
 
