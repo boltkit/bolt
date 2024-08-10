@@ -381,8 +381,36 @@ jobs:
 ```
 
 
+### Configure LDAP
 
+config/koa-authn-ldap.yml
 
+```
+enable: true
+routes:
+  login: '/loginldap'
+  logout: '/logout'
+views:
+  login: 'login'
+userObjectMap:
+  username: mail
+  displayName: displayName
+server:
+  url: 'ldaps://ldap.example.com:3636'
+  bindDN: 'cn=my_service_account,ou=my_app_ou,dc=example,dc=com'
+  bindCredentials: 'badp@ssw0rd'
+  searchBase: 'dc=example,dc=com'
+  searchFilter: '(mail={{username}})'
+```
+
+config/koa-authn.yml
+
+```
+enable: true
+# used as redirection uri if a user is unautenticated
+routes:
+  login: "/loginldap"
+```
 
 ### Todo:
 
@@ -399,7 +427,7 @@ jobs:
 - [v] implement repeat pipeline
 - manage job timeout
 - secure inputs
-- implement auth
+- [v] implement basic LDAP auth
 - implement api
 - add BOLT_ARG_***_RAW that strips quotes from json strings
 - BOLT_ARG_ shall have _ allowed in it
