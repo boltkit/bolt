@@ -5,10 +5,11 @@ const jsf = require('json-schema-faker');
 
 class IndexController {
 
-  constructor({koa, bull, mongoose}) {
+  constructor({koa, bull, mongoose, koaAuthn}) {
     this.bull = bull;
     this.mongoose = mongoose;
     koa.useRouter(koa.router
+      .use(koaAuthn.requireUser())
       .get('/scripts', this.showScripts.bind(this))
       .get('/scripts/new', this.newScript.bind(this))
       .post('/scripts', this.createScript.bind(this))

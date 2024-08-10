@@ -3,10 +3,11 @@ const ajv = require("ajv");
 
 class IndexController {
 
-  constructor({koa, bull, mongoose}) {
+  constructor({koa, bull, mongoose, koaAuthn}) {
     this.bull = bull;
     this.mongoose = mongoose;
     koa.useRouter(koa.router
+      .use(koaAuthn.requireUser())
       .get('/pipelines', this.showPipelineInstances.bind(this))
       .get('/pipelines/:id', this.showPipelineInstance.bind(this))
       .post('/pipelines/:id/repeat', this.repeatPipelineInstance.bind(this))

@@ -1,0 +1,47 @@
+<%- include('_header.html') %>
+
+<style>
+pre.src {
+  color: white;
+  background-color: black;
+  padding: 13px;
+  border-radius: 3px;
+}
+</style>
+
+
+<!--
+<%- include('_breadcrumbs.html', {items: [
+  {title: "Home", uri: "/"},
+  {title: "Settings", uri: "/settings/account"},
+  {title: "Account", uri: "/settings/account"}
+]}) %>
+-->
+
+<div>
+  <h3 class="page-title">Settings</h3>
+  <p class="page-title">
+  </p>
+</div>
+
+<div class="script-nav">
+  <ul class="nav nav-pills justify-content-center">
+    <li class="nav-item">
+      <a class="nav-link active" href="<%= `/settings/account` %>">Account</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="<%= `/settings/tokens` %>">Tokens</a>
+    </li>
+  </ul>
+</div>
+
+<div>
+
+Welcome <%= user.displayName %>
+
+</div>
+
+
+
+<%- include('_footer.html') %>
+

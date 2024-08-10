@@ -104,6 +104,7 @@
 </head>
 <body>
 
+<% if (locals.noLayout !== true) { %>
 
 <div class="container">
   <div class="row">
@@ -112,6 +113,13 @@
         <a class="nav-link" id="v-pills-home-tab" href="/" role="tab">Overview</a>
         <a class="nav-link" id="v-pills-profile-tab" href="/scripts" role="tab">Scripts</a>
         <a class="nav-link" id="v-pills-messages-tab" href="/pipelines" role="tab">Pipelines</a>
+
+        <% if (locals.user) { %>
+          <a class="nav-link" id="v-pills-home-tab" href="/settings/account" role="tab">Settings</a>
+          <a class="nav-link" id="v-pills-home-tab" href="/logout" role="tab">Logout</a>
+        <% } %>
       </div>
     </div>
     <div class="col-10">
+
+<% } %>
